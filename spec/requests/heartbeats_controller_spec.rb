@@ -70,11 +70,12 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
 
       expect(response.status).to eq(200)
       expect(response.parsed_body).to eq("status" => "unknown_server")
-      get "/gtmc/status.json"
-      expect(response.parsed_body["servers"].map { |server| server["server_id"] }).to eq(
-        ["survival"],
-      )
-      expect(response.parsed_body["servers"].first["online"]).to eq(false)
+      # 登记之后才能从 status.json 看到 creative；若刚才的心跳被存下了，这里会显示在线
+      SiteSetting.gtmc_servers = [
+        { server_id: "survival", name: "生存服", address: "survival.gtmc.test" },
+        { server_id: "creative", name: "创造服", address: "creative.gtmc.test" },
+      ].to_json
+      expect(status_of("creative")["online"]).to eq(false)
     end
 
     it "answers unknown_server for every server_id when gtmc_servers is empty" do
