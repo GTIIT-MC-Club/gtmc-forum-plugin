@@ -15,6 +15,19 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛，第二
 心跳请求体必须是 JSON（`Content-Type: application/json`），人数必须是非负整数、`tps` 必须是数字，
 `player_names` 必须是数组（服务器没人时传 `[]`）。类型不对返回 400。
 
+## 首页服务器状态组件
+
+`assets/javascripts/discourse/components/gtmc-server-status.gjs`，由 `api-initializers/gtmc-server-status.js`
+挂到 `discovery-above` 出口（话题列表上方）。只在没有按分类或标签筛选的列表上显示，`gtmc_enabled` 关闭时不渲染也不请求。
+
+- 页面可见时每 30 秒请求一次 `/gtmc/status.json`；页面不可见时暂停，重新可见时立刻请求一次；组件销毁时清理。
+- 三种状态：在线（人数、版本、点击复制的服务器地址、地图入口）、离线、请求失败（显示「状态暂不可用」）。
+- 请求失败后不保留上一次的数据，直接显示「状态暂不可用」，避免展示过期的在线人数。
+- 文案在 `config/locales/client.*.yml` 的 `js.gtmc.server_status` 下，样式在 `assets/stylesheets/gtmc-server-status.scss`。
+
+离线的延迟：MC 服务器停止后，最迟要等到 `gtmc_heartbeat_timeout_seconds`（默认 90 秒）后接口才返回离线，
+再加上组件最长 30 秒的刷新间隔，页面上最迟约 120 秒后变为离线。
+
 ## 给 MC 插件发 API Key
 
 1. 管理后台 → API 密钥 → 新建 API 密钥（菜单位置随 Discourse 版本可能变动）。
@@ -31,8 +44,8 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛，第二
 |---|---|---|
 | `gtmc_enabled` | 开 | 关掉后插件的接口返回 404；但只勾了 `gtmc:server` 的 Key 会拿到 403，因为插件关闭时 Discourse 连同它的作用域一起停用 |
 | `gtmc_heartbeat_timeout_seconds` | 90 | 多久没收到心跳就算离线；MC 插件每 30 秒报一次，90 秒即连丢三次 |
-| `gtmc_server_address` | 空 | 首页状态组件展示的服务器地址，后端不读 |
-| `gtmc_map_url` | 空 | 地图入口网址，空则不显示，后端不读 |
+| `gtmc_server_address` | 空 | 首页状态组件展示、点击即复制的服务器地址，空则不显示，后端不读 |
+| `gtmc_map_url` | 空 | 首页状态组件的地图入口网址，只接受 `http(s)://` 开头的值，空或不合格则不显示，后端不读 |
 
 ## 测试
 
@@ -43,6 +56,14 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛，第二
 # 在 Discourse 核心的检出目录里
 ln -s /path/to/gtmc-discourse/plugins/discourse-gtmc plugins/discourse-gtmc
 LOAD_PLUGINS=1 bin/rspec plugins/discourse-gtmc/spec
+```
+
+前端的 QUnit 验收测试在 `test/javascripts/acceptance/`，同样跑在 Discourse 核心的测试环境里
+（另需 Node、pnpm 和 Chrome，按官方开发环境指南装好）：
+
+```sh
+# 在 Discourse 核心的检出目录里，插件已按上面的方式链接进 plugins/
+LOAD_PLUGINS=1 bin/rake "plugin:qunit[discourse-gtmc]"
 ```
 
 ## 部署

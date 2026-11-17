@@ -1,0 +1,44 @@
+// 首页服务器状态条。颜色和间距只用 Discourse 的 CSS 变量，不写死色值。
+.gtmc-server-status {
+  --gtmc-server-status-accent: var(--primary-medium);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--primary-low);
+
+  // 左侧加粗的状态色条，一眼分辨在线、离线、不可用
+  border-left: 4px solid var(--gtmc-server-status-accent);
+  border-radius: var(--d-border-radius);
+  background: var(--secondary);
+
+  &--online {
+    --gtmc-server-status-accent: var(--success);
+  }
+
+  &--offline {
+    --gtmc-server-status-accent: var(--danger);
+  }
+
+  &__summary,
+  &__links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-4);
+  }
+
+  &__headline {
+    font-weight: bold;
+    color: var(--primary);
+  }
+
+  &__players,
+  &__version,
+  &__hint {
+    color: var(--primary-medium);
+  }
+}

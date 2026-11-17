@@ -8,6 +8,8 @@
 
 enabled_site_setting :gtmc_enabled
 
+register_asset "stylesheets/gtmc-server-status.scss"
+
 module ::DiscourseGtmc
   PLUGIN_NAME = "discourse-gtmc"
 end

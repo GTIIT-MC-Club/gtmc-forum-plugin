@@ -1,4 +1,19 @@
 en:
+  js:
+    gtmc:
+      server_status:
+        title: "Minecraft server status"
+        loading: "Checking the server status…"
+        online: "Server online"
+        offline: "Server offline"
+        offline_hint: "The server is not responding right now. Please check back later."
+        unavailable: "Status unavailable"
+        unavailable_hint: "The forum could not get the server status. This page will keep retrying automatically."
+        players: "Players %{online} / %{max}"
+        version: "Version %{version}"
+        copy_address_aria_label: "Copy server address %{address}"
+        copied: "Copied"
+        map: "Live map"
   admin_js:
     admin:
       site_settings:
