@@ -23,6 +23,17 @@ en:
         map: "Live map"
         expand_tooltip: "Show all servers"
         collapse_tooltip: "Show fewer"
+      newcomer:
+        title: "Getting into the server"
+        progress_tooltip: "%{done} of %{total} steps done"
+        steps:
+          register: "Sign up with your campus email"
+          read_guide: "Read the newcomer guide"
+          bind_mc_name: "Link your Minecraft name"
+          enter_login_code: "Enter the login code in game"
+        actions:
+          sign_up: "Sign up"
+          read_guide: "Read it"
   admin_js:
     admin:
       site_settings:

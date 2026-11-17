@@ -22,6 +22,17 @@ zh_CN:
         map: "实时地图"
         expand_tooltip: "展开全部服务器"
         collapse_tooltip: "收起"
+      newcomer:
+        title: "新人进服"
+        progress_tooltip: "已完成 %{done} 步，共 %{total} 步"
+        steps:
+          register: "用校园邮箱注册"
+          read_guide: "读一遍新人指南"
+          bind_mc_name: "绑定游戏名"
+          enter_login_code: "进服输入登录码"
+        actions:
+          sign_up: "去注册"
+          read_guide: "去阅读"
   admin_js:
     admin:
       site_settings:

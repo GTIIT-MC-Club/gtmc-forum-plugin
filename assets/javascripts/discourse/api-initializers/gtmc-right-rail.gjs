@@ -1,5 +1,6 @@
 import { apiInitializer } from "discourse/lib/api";
 import GtmcOnDiscoveryRoutes from "../components/gtmc-on-discovery-routes.gjs";
+import GtmcRailNewcomer from "../components/gtmc-rail-newcomer.gjs";
 import GtmcRailServers from "../components/gtmc-rail-servers.gjs";
 
 // gtmc-right-rail 由主题提供（PLAN.md T5a），面板按这里注册的顺序从上到下排。
@@ -13,6 +14,12 @@ export default apiInitializer((api) => {
     "gtmc-right-rail",
     <template>
       <GtmcOnDiscoveryRoutes><GtmcRailServers /></GtmcOnDiscoveryRoutes>
+    </template>
+  );
+  api.renderInOutlet(
+    "gtmc-right-rail",
+    <template>
+      <GtmcOnDiscoveryRoutes><GtmcRailNewcomer /></GtmcOnDiscoveryRoutes>
     </template>
   );
 });
