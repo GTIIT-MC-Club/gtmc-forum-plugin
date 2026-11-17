@@ -1,0 +1,11 @@
+zh_CN:
+  admin_js:
+    admin:
+      site_settings:
+        categories:
+          discourse_gtmc: "GTMC"
+      api:
+        scopes:
+          descriptions:
+            gtmc:
+              server: "仅供 GTMC 的 MC 服务器插件使用：向论坛上报心跳。请求时用 Api-Username: system。"

@@ -1,0 +1,6 @@
+zh_CN:
+  site_settings:
+    gtmc_enabled: "启用 GTMC 插件（MC 服务器状态、账号绑定）。"
+    gtmc_heartbeat_timeout_seconds: "超过这么多秒没收到 MC 服务器的心跳，就显示为离线。"
+    gtmc_server_address: "展示给用户的 MC 服务器地址，例如 mc.example.com。仅用于显示。"
+    gtmc_map_url: "实时地图的网址。留空则不显示地图入口。"

@@ -1,0 +1,11 @@
+en:
+  admin_js:
+    admin:
+      site_settings:
+        categories:
+          discourse_gtmc: "GTMC"
+      api:
+        scopes:
+          descriptions:
+            gtmc:
+              server: "For the GTMC Minecraft server plugin only: report heartbeats to the forum. Use with Api-Username: system."

@@ -1,0 +1,18 @@
+# 只列第一期用到的设置；gtmc_ip_trust_hours 等第二期的设置随对应任务加入。
+discourse_gtmc:
+  gtmc_enabled:
+    default: true
+    client: true
+  gtmc_heartbeat_timeout_seconds:
+    # MC 插件默认每 30 秒上报一次，90 秒相当于连续丢三次心跳才判定离线。
+    # 下限取心跳间隔 30 秒：再小的话两次心跳之间就会闪成离线。
+    default: 90
+    min: 30
+    max: 3600
+  # 下面两项给首页状态组件（T2）展示用，插件后端不读。
+  gtmc_server_address:
+    default: ""
+    client: true
+  gtmc_map_url:
+    default: ""
+    client: true
