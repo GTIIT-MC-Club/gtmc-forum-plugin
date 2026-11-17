@@ -34,6 +34,11 @@ en:
         actions:
           sign_up: "Sign up"
           read_guide: "Read it"
+      events:
+        title: "Upcoming events"
+        empty: "No upcoming events"
+        unavailable: "Events could not be loaded"
+        date_format: "ddd, MMM D"
   admin_js:
     admin:
       site_settings:
