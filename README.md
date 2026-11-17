@@ -46,7 +46,7 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛，第二
 ## 右栏面板和手机形态
 
 界面按 `design/mockups/c-*.html` 实现（规则见 `AGENTS.md`「界面规则」）。桌面的三个面板都渲染进主题（T5a）提供的
-`gtmc-right-rail` 出口，只在话题列表类的页面（首页、版块、标签）出现，话题页不出现；`gtmc_enabled` 关闭时不渲染也不请求。
+`gtmc-right-rail` 出口，只在首页和版块页（路由名以 `discovery.` 开头）出现，话题页和标签页（路由 `tag.*`）不出现；`gtmc_enabled` 关闭时不渲染也不请求。
 面板按注册顺序从上到下：服务器、新人进服、近期活动，入口在 `assets/javascripts/discourse/api-initializers/gtmc-right-rail.gjs`。
 
 - **服务器**（`gtmc-rail-servers.gjs`）：标题旁是刷新倒计时圆环，周期取接口的 `refresh_interval_seconds`；
