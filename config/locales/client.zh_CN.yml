@@ -4,14 +4,14 @@ zh_CN:
       server_status:
         title: "Minecraft 服务器状态"
         loading: "正在获取服务器状态…"
-        online: "服务器在线"
-        offline: "服务器离线"
+        online: "在线"
+        offline: "离线"
         offline_hint: "服务器暂时没有响应，请稍后再来看看。"
         unavailable: "状态暂不可用"
         unavailable_hint: "论坛暂时无法获取服务器状态，页面会自动重试。"
-        players: "在线 %{online} / %{max}"
+        players: "%{online} / %{max} 人"
         version: "版本 %{version}"
-        copy_address_aria_label: "复制服务器地址 %{address}"
+        copy_address_aria_label: "复制%{name}的地址 %{address}"
         copied: "已复制"
         map: "实时地图"
   admin_js:

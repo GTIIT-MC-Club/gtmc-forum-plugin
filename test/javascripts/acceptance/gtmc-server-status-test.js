@@ -4,20 +4,7 @@ import sinon from "sinon";
 import { acceptance } from "discourse/tests/helpers/qunit-helpers";
 import { i18n } from "discourse-i18n";
 
-const SERVER_ADDRESS = "mc.gtmc.test";
-const MAP_URL = "https://map.gtmc.test";
-
-const ONLINE_STATUS = {
-  online: true,
-  version: "1.21.4",
-  players_online: 3,
-  players_max: 20,
-  player_names: ["Steve", "Alex", "Notch"],
-  tps: 19.98,
-  updated_at: "2026-11-17T12:00:00.000+00:00",
-};
-
-const OFFLINE_STATUS = {
+const OFFLINE_FIELDS = {
   online: false,
   version: null,
   players_online: null,
@@ -27,11 +14,44 @@ const OFFLINE_STATUS = {
   updated_at: null,
 };
 
-const DEFAULT_SETTINGS = {
-  gtmc_enabled: true,
-  gtmc_server_address: SERVER_ADDRESS,
-  gtmc_map_url: MAP_URL,
-};
+function onlineServer(serverId, name, playersOnline) {
+  return {
+    server_id: serverId,
+    name,
+    address: `${serverId}.gtmc.test`,
+    map_url: `https://map.gtmc.test/${serverId}`,
+    online: true,
+    version: "1.21.4",
+    players_online: playersOnline,
+    players_max: 20,
+    player_names: [],
+    tps: 19.98,
+    updated_at: "2026-11-17T12:00:00.000+00:00",
+  };
+}
+
+function offlineServer(serverId, name) {
+  return {
+    server_id: serverId,
+    name,
+    address: `${serverId}.gtmc.test`,
+    map_url: null,
+    ...OFFLINE_FIELDS,
+  };
+}
+
+const SURVIVAL = onlineServer("survival", "生存服", 3);
+
+const FOUR_SERVERS = [
+  SURVIVAL,
+  onlineServer("creative", "创造服", 1),
+  offlineServer("modded", "模组服"),
+  offlineServer("minigame", "小游戏服"),
+];
+
+function cardSelector(serverId) {
+  return `.gtmc-server-card[data-server-id="${serverId}"]`;
+}
 
 // 测试里的浏览器标签页未必处于可见状态，而组件的行为取决于它，所以显式指定。
 function stubVisibilityState(state) {
@@ -46,43 +66,42 @@ function restoreVisibilityState() {
   delete document.visibilityState;
 }
 
-acceptance("GTMC server status | online", function (needs) {
-  needs.settings(DEFAULT_SETTINGS);
+// 每组场景只是接口响应不同，其余准备相同。
+function respondWith(needs, statusResponse) {
+  needs.settings({ gtmc_enabled: true });
   needs.hooks.beforeEach(() => stubVisibilityState("visible"));
   needs.hooks.afterEach(restoreVisibilityState);
-
   needs.pretender((server, helper) => {
-    server.get("/gtmc/status.json", () => helper.response(ONLINE_STATUS));
+    server.get("/gtmc/status.json", () => statusResponse(helper));
   });
+}
 
-  test("shows player count, version, address and map link", async function (assert) {
+acceptance("GTMC server status | one server", function (needs) {
+  respondWith(needs, (helper) => helper.response({ servers: [SURVIVAL] }));
+
+  test("shows a single card with name, players, version, address and map link", async function (assert) {
     await visit("/");
 
-    assert.dom(".gtmc-server-status--online").exists();
+    assert.dom(".gtmc-server-card").exists({ count: 1 });
+    const card = cardSelector("survival");
+    assert.dom(card).hasClass("gtmc-server-card--online");
+    assert.dom(`${card} .gtmc-server-card__name`).hasText("生存服");
     assert
-      .dom(".gtmc-server-status__headline")
+      .dom(`${card} .gtmc-server-card__state`)
       .hasText(i18n("gtmc.server_status.online"));
     assert
-      .dom(".gtmc-server-status__players")
+      .dom(`${card} .gtmc-server-card__players`)
       .hasText(i18n("gtmc.server_status.players", { online: 3, max: 20 }));
     assert
-      .dom(".gtmc-server-status__version")
+      .dom(`${card} .gtmc-server-card__version`)
       .hasText(i18n("gtmc.server_status.version", { version: "1.21.4" }));
-    assert.dom(".gtmc-server-status__address").hasText(SERVER_ADDRESS);
     assert
-      .dom(".gtmc-server-status__map")
-      .hasAttribute("href", MAP_URL)
+      .dom(`${card} .gtmc-server-card__address`)
+      .hasText("survival.gtmc.test");
+    assert
+      .dom(`${card} .gtmc-server-card__map`)
+      .hasAttribute("href", "https://map.gtmc.test/survival")
       .hasText(i18n("gtmc.server_status.map"));
-  });
-
-  test("copies the server address when the address is clicked", async function (assert) {
-    const writeText = sinon.stub().resolves();
-    sinon.stub(window.navigator, "clipboard").get(() => ({ writeText }));
-
-    await visit("/");
-    await click(".gtmc-server-status__address");
-
-    assert.true(writeText.calledOnceWithExactly(SERVER_ADDRESS));
   });
 
   test("is not shown on a category page", async function (assert) {
@@ -92,77 +111,100 @@ acceptance("GTMC server status | online", function (needs) {
   });
 });
 
-acceptance("GTMC server status | optional items", function (needs) {
-  needs.settings({
-    ...DEFAULT_SETTINGS,
-    gtmc_server_address: "",
-    gtmc_map_url: "",
-  });
-  needs.hooks.beforeEach(() => stubVisibilityState("visible"));
-  needs.hooks.afterEach(restoreVisibilityState);
+acceptance("GTMC server status | four servers", function (needs) {
+  respondWith(needs, (helper) => helper.response({ servers: FOUR_SERVERS }));
 
-  needs.pretender((server, helper) => {
-    server.get("/gtmc/status.json", () => helper.response(ONLINE_STATUS));
-  });
-
-  test("hides the address and the map link when their settings are empty", async function (assert) {
+  test("shows one card per server in the order of the response", async function (assert) {
     await visit("/");
 
-    assert.dom(".gtmc-server-status--online").exists();
-    assert.dom(".gtmc-server-status__address").doesNotExist();
-    assert.dom(".gtmc-server-status__map").doesNotExist();
+    const renderedServerIds = [
+      ...document.querySelectorAll(".gtmc-server-card"),
+    ].map((card) => card.dataset.serverId);
+    assert.deepEqual(renderedServerIds, [
+      "survival",
+      "creative",
+      "modded",
+      "minigame",
+    ]);
+  });
+
+  test("shows online and offline servers side by side", async function (assert) {
+    await visit("/");
+
+    assert.dom(".gtmc-server-card--online").exists({ count: 2 });
+    assert.dom(".gtmc-server-card--offline").exists({ count: 2 });
+    assert
+      .dom(`${cardSelector("creative")} .gtmc-server-card__players`)
+      .hasText(i18n("gtmc.server_status.players", { online: 1, max: 20 }));
+
+    const offlineCard = cardSelector("modded");
+    assert
+      .dom(`${offlineCard} .gtmc-server-card__state`)
+      .hasText(i18n("gtmc.server_status.offline"));
+    assert.dom(`${offlineCard} .gtmc-server-card__players`).doesNotExist();
+    assert.dom(`${offlineCard} .gtmc-server-card__address`).doesNotExist();
+    assert.dom(".gtmc-server-status--unavailable").doesNotExist();
+  });
+
+  test("copies the address of the clicked server", async function (assert) {
+    const writeText = sinon.stub().resolves();
+    sinon.stub(window.navigator, "clipboard").get(() => ({ writeText }));
+
+    await visit("/");
+    await click(`${cardSelector("creative")} .gtmc-server-card__address`);
+
+    assert.true(writeText.calledOnceWithExactly("creative.gtmc.test"));
+  });
+});
+
+acceptance("GTMC server status | no servers", function (needs) {
+  respondWith(needs, (helper) => helper.response({ servers: [] }));
+
+  test("renders nothing when no server is registered", async function (assert) {
+    await visit("/");
+
+    assert.dom(".gtmc-server-status").doesNotExist();
+  });
+});
+
+acceptance("GTMC server status | optional items", function (needs) {
+  respondWith(needs, (helper) =>
+    helper.response({
+      servers: [{ ...SURVIVAL, address: "", map_url: null }],
+    })
+  );
+
+  test("hides the address and the map link when they are empty", async function (assert) {
+    await visit("/");
+
+    assert.dom(".gtmc-server-card--online").exists();
+    assert.dom(".gtmc-server-card__address").doesNotExist();
+    assert.dom(".gtmc-server-card__map").doesNotExist();
   });
 });
 
 acceptance("GTMC server status | unsafe map url", function (needs) {
-  needs.settings({
-    ...DEFAULT_SETTINGS,
-    gtmc_map_url: "javascript:alert(1)", // eslint-disable-line no-script-url
-  });
-  needs.hooks.beforeEach(() => stubVisibilityState("visible"));
-  needs.hooks.afterEach(restoreVisibilityState);
-
-  needs.pretender((server, helper) => {
-    server.get("/gtmc/status.json", () => helper.response(ONLINE_STATUS));
-  });
+  respondWith(needs, (helper) =>
+    helper.response({
+      servers: [
+        { ...SURVIVAL, map_url: "javascript:alert(1)" }, // eslint-disable-line no-script-url
+        onlineServer("creative", "创造服", 1),
+      ],
+    })
+  );
 
   test("does not render a map link that is not http or https", async function (assert) {
     await visit("/");
 
-    assert.dom(".gtmc-server-status--online").exists();
-    assert.dom(".gtmc-server-status__map").doesNotExist();
-  });
-});
-
-acceptance("GTMC server status | offline", function (needs) {
-  needs.settings(DEFAULT_SETTINGS);
-  needs.hooks.beforeEach(() => stubVisibilityState("visible"));
-  needs.hooks.afterEach(restoreVisibilityState);
-
-  needs.pretender((server, helper) => {
-    server.get("/gtmc/status.json", () => helper.response(OFFLINE_STATUS));
-  });
-
-  test("shows the server as offline without player details", async function (assert) {
-    await visit("/");
-
-    assert.dom(".gtmc-server-status--offline").exists();
     assert
-      .dom(".gtmc-server-status__headline")
-      .hasText(i18n("gtmc.server_status.offline"));
-    assert.dom(".gtmc-server-status__players").doesNotExist();
-    assert.dom(".gtmc-server-status__address").doesNotExist();
+      .dom(`${cardSelector("survival")} .gtmc-server-card__map`)
+      .doesNotExist();
+    assert.dom(`${cardSelector("creative")} .gtmc-server-card__map`).exists();
   });
 });
 
 acceptance("GTMC server status | request fails", function (needs) {
-  needs.settings(DEFAULT_SETTINGS);
-  needs.hooks.beforeEach(() => stubVisibilityState("visible"));
-  needs.hooks.afterEach(restoreVisibilityState);
-
-  needs.pretender((server, helper) => {
-    server.get("/gtmc/status.json", () => helper.response(500, {}));
-  });
+  respondWith(needs, (helper) => helper.response(500, {}));
 
   test("shows that the status is unavailable instead of a blank area", async function (assert) {
     await visit("/");
@@ -171,32 +213,46 @@ acceptance("GTMC server status | request fails", function (needs) {
     assert
       .dom(".gtmc-server-status__headline")
       .hasText(i18n("gtmc.server_status.unavailable"));
+    assert.dom(".gtmc-server-card").doesNotExist();
   });
 });
 
-acceptance("GTMC server status | malformed response", function (needs) {
-  needs.settings(DEFAULT_SETTINGS);
-  needs.hooks.beforeEach(() => stubVisibilityState("visible"));
-  needs.hooks.afterEach(restoreVisibilityState);
+acceptance("GTMC server status | single-server response", function (needs) {
+  // T2 时代的单服响应（没有 servers 数组），论坛和组件版本不一致时可能出现
+  respondWith(needs, (helper) =>
+    helper.response({ online: true, players_online: 3, players_max: 20 })
+  );
 
-  needs.pretender((server, helper) => {
-    // 在线却缺人数：不能渲染成「在线 undefined / undefined」
-    server.get("/gtmc/status.json", () =>
-      helper.response({ online: true, version: "1.21.4" })
-    );
-  });
-
-  test("treats an online response without player counts as unavailable", async function (assert) {
+  test("treats a response without a servers array as unavailable", async function (assert) {
     await visit("/");
 
     assert.dom(".gtmc-server-status--unavailable").exists();
   });
 });
 
+acceptance("GTMC server status | malformed server", function (needs) {
+  respondWith(needs, (helper) =>
+    helper.response({
+      // 在线却缺人数：不能渲染成「undefined / undefined 人」
+      servers: [
+        SURVIVAL,
+        { ...SURVIVAL, server_id: "creative", players_max: null },
+      ],
+    })
+  );
+
+  test("treats a response with any malformed server as unavailable", async function (assert) {
+    await visit("/");
+
+    assert.dom(".gtmc-server-status--unavailable").exists();
+    assert.dom(".gtmc-server-card").doesNotExist();
+  });
+});
+
 acceptance("GTMC server status | plugin disabled", function (needs) {
   let requestCount = 0;
 
-  needs.settings({ ...DEFAULT_SETTINGS, gtmc_enabled: false });
+  needs.settings({ gtmc_enabled: false });
   needs.hooks.beforeEach(() => {
     requestCount = 0;
     stubVisibilityState("visible");
@@ -206,7 +262,7 @@ acceptance("GTMC server status | plugin disabled", function (needs) {
   needs.pretender((server, helper) => {
     server.get("/gtmc/status.json", () => {
       requestCount += 1;
-      return helper.response(ONLINE_STATUS);
+      return helper.response({ servers: [SURVIVAL] });
     });
   });
 
@@ -221,7 +277,7 @@ acceptance("GTMC server status | plugin disabled", function (needs) {
 acceptance("GTMC server status | page visibility", function (needs) {
   let requestCount = 0;
 
-  needs.settings(DEFAULT_SETTINGS);
+  needs.settings({ gtmc_enabled: true });
   needs.hooks.beforeEach(() => {
     requestCount = 0;
   });
@@ -230,7 +286,7 @@ acceptance("GTMC server status | page visibility", function (needs) {
   needs.pretender((server, helper) => {
     server.get("/gtmc/status.json", () => {
       requestCount += 1;
-      return helper.response(ONLINE_STATUS);
+      return helper.response({ servers: [SURVIVAL] });
     });
   });
 

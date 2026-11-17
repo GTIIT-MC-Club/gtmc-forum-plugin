@@ -1,6 +1,5 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
-import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import { bind } from "discourse/lib/decorators";
 import DCopyButton from "discourse/ui-kit/d-copy-button";
@@ -15,25 +14,74 @@ const REQUEST_TIMEOUT_MILLIS = 10_000;
 
 const HTTP_URL_PATTERN = /^https?:\/\//i;
 
-// 响应来自网络，进入组件状态前先确认字段类型；不合格当作接口不可用。
-function isUsableStatus(response) {
-  if (typeof response?.online !== "boolean") {
+function isUsableServer(server) {
+  if (
+    typeof server?.server_id !== "string" ||
+    typeof server.name !== "string" ||
+    typeof server.online !== "boolean"
+  ) {
     return false;
   }
-  if (!response.online) {
+  if (!server.online) {
     return true;
   }
   return (
-    Number.isInteger(response.players_online) &&
-    Number.isInteger(response.players_max)
+    Number.isInteger(server.players_online) &&
+    Number.isInteger(server.players_max)
   );
 }
 
+// 响应来自网络，进入组件状态前先确认字段类型。任何一项不合格都当作整个接口不可用：
+// 悄悄丢掉某个服会让玩家以为它不存在，比显示「状态暂不可用」更误导人。
+function isUsableResponse(response) {
+  return (
+    Array.isArray(response?.servers) && response.servers.every(isUsableServer)
+  );
+}
+
+// 站点设置没有格式校验，只放行 http(s)，免得填错成 javascript: 之类的地址被渲染成链接。
+function safeMapUrl(mapUrl) {
+  return HTTP_URL_PATTERN.test(mapUrl) ? mapUrl : null;
+}
+
+// 把接口里的一项变成模板直接用的展示数据，模板里不再做判断和拼接。
+function toServerCard(server) {
+  const card = {
+    serverId: server.server_id,
+    name: server.name,
+    isOnline: server.online,
+    stateClass: server.online
+      ? "gtmc-server-card--online"
+      : "gtmc-server-card--offline",
+    address: server.address || null,
+    mapUrl: safeMapUrl(server.map_url),
+    copyAddressAriaLabel: i18n("gtmc.server_status.copy_address_aria_label", {
+      name: server.name,
+      address: server.address,
+    }),
+    playersLabel: null,
+    versionLabel: null,
+  };
+  if (server.online) {
+    card.playersLabel = i18n("gtmc.server_status.players", {
+      online: server.players_online,
+      max: server.players_max,
+    });
+    if (server.version) {
+      card.versionLabel = i18n("gtmc.server_status.version", {
+        version: server.version,
+      });
+    }
+  }
+  return card;
+}
+
 /**
- * 首页的 MC 服务器状态条，数据来自 GET /gtmc/status.json（契约见 PLAN.md 4.1）。
+ * 首页的 MC 服务器状态，每个服一张卡片，数据来自 GET /gtmc/status.json（契约见 PLAN.md 4.1）。
  *
  * 轮询约定：页面可见时每 REFRESH_INTERVAL_MILLIS 请求一次；页面不可见时暂停，
  * 重新可见时立刻请求一次；组件销毁时清掉定时器和事件监听。
+ * 接口失败时整体显示「状态暂不可用」，此时没有任何服的数据可显示；没有登记任何服时什么都不渲染。
  */
 export default class GtmcServerStatus extends Component {
   // 只在没有按分类或标签筛选的列表上显示，即首页；分类页上重复出现只是干扰。
@@ -46,10 +94,8 @@ export default class GtmcServerStatus extends Component {
     );
   }
 
-  @service siteSettings;
-
-  // 最近一次成功拿到的响应；为 null 且 hasLoaded 为真表示最近一次请求失败。
-  @tracked status = null;
+  // 最近一次成功拿到的服列表；为 null 且 hasLoaded 为真表示最近一次请求失败。
+  @tracked servers = null;
   @tracked hasLoaded = false;
 
   refreshTimer = null;
@@ -72,56 +118,21 @@ export default class GtmcServerStatus extends Component {
     clearTimeout(this.refreshTimer);
   }
 
-  get viewState() {
-    if (!this.hasLoaded) {
-      return "loading";
-    }
-    if (!this.status) {
-      return "unavailable";
-    }
-    return this.status.online ? "online" : "offline";
-  }
-
-  get isOnline() {
-    return this.viewState === "online";
-  }
-
-  get isOffline() {
-    return this.viewState === "offline";
+  get isLoading() {
+    return !this.hasLoaded;
   }
 
   get isUnavailable() {
-    return this.viewState === "unavailable";
+    return this.hasLoaded && !this.servers;
   }
 
-  get playersLabel() {
-    return i18n("gtmc.server_status.players", {
-      online: this.status.players_online,
-      max: this.status.players_max,
-    });
+  // 还没有登记任何服时首页上不留一个空框；管理员登记后下一轮刷新就会出现。
+  get hasServers() {
+    return this.servers?.length > 0;
   }
 
-  get versionLabel() {
-    if (!this.status.version) {
-      return null;
-    }
-    return i18n("gtmc.server_status.version", { version: this.status.version });
-  }
-
-  get serverAddress() {
-    return this.siteSettings.gtmc_server_address;
-  }
-
-  get copyAddressAriaLabel() {
-    return i18n("gtmc.server_status.copy_address_aria_label", {
-      address: this.serverAddress,
-    });
-  }
-
-  // 站点设置没有格式校验，只放行 http(s)，免得填错成 javascript: 之类的地址被渲染成链接。
-  get mapUrl() {
-    const mapUrl = this.siteSettings.gtmc_map_url;
-    return HTTP_URL_PATTERN.test(mapUrl) ? mapUrl : null;
+  get serverCards() {
+    return this.servers.map(toServerCard);
   }
 
   @bind
@@ -160,7 +171,8 @@ export default class GtmcServerStatus extends Component {
       return;
     }
 
-    this.status = isUsableStatus(response) ? response : null;
+    // 失败后不保留上一次的数据，免得展示过期的在线人数。
+    this.servers = isUsableResponse(response) ? response.servers : null;
     this.hasLoaded = true;
     this.scheduleNextRefresh();
   }
@@ -178,52 +190,23 @@ export default class GtmcServerStatus extends Component {
   }
 
   <template>
-    <section
-      aria-label={{i18n "gtmc.server_status.title"}}
-      class="gtmc-server-status gtmc-server-status--{{this.viewState}}"
-    >
-      {{#if this.isOnline}}
-        <div class="gtmc-server-status__summary">
-          <span class="gtmc-server-status__headline">{{i18n
-              "gtmc.server_status.online"
-            }}</span>
-          <span class="gtmc-server-status__players">{{this.playersLabel}}</span>
-          {{#if this.versionLabel}}
-            <span
-              class="gtmc-server-status__version"
-            >{{this.versionLabel}}</span>
-          {{/if}}
-        </div>
-        <div class="gtmc-server-status__links">
-          {{#if this.serverAddress}}
-            <DCopyButton
-              @ariaLabel={{this.copyAddressAriaLabel}}
-              @copyClass="btn-default gtmc-server-status__address"
-              @translatedLabel={{this.serverAddress}}
-              @translatedLabelAfterCopy={{i18n "gtmc.server_status.copied"}}
-              @value={{this.serverAddress}}
-            />
-          {{/if}}
-          {{#if this.mapUrl}}
-            <a
-              class="gtmc-server-status__map"
-              href={{this.mapUrl}}
-              rel="noopener noreferrer"
-              target="_blank"
-            >{{i18n "gtmc.server_status.map"}}</a>
-          {{/if}}
-        </div>
-      {{else if this.isOffline}}
-        <div class="gtmc-server-status__summary">
-          <span class="gtmc-server-status__headline">{{i18n
-              "gtmc.server_status.offline"
-            }}</span>
+    {{#if this.isLoading}}
+      <section
+        aria-label={{i18n "gtmc.server_status.title"}}
+        class="gtmc-server-status gtmc-server-status--loading"
+      >
+        <div class="gtmc-server-status__notice">
           <span class="gtmc-server-status__hint">{{i18n
-              "gtmc.server_status.offline_hint"
+              "gtmc.server_status.loading"
             }}</span>
         </div>
-      {{else if this.isUnavailable}}
-        <div class="gtmc-server-status__summary">
+      </section>
+    {{else if this.isUnavailable}}
+      <section
+        aria-label={{i18n "gtmc.server_status.title"}}
+        class="gtmc-server-status gtmc-server-status--unavailable"
+      >
+        <div class="gtmc-server-status__notice">
           <span class="gtmc-server-status__headline">{{i18n
               "gtmc.server_status.unavailable"
             }}</span>
@@ -231,13 +214,67 @@ export default class GtmcServerStatus extends Component {
               "gtmc.server_status.unavailable_hint"
             }}</span>
         </div>
-      {{else}}
-        <div class="gtmc-server-status__summary">
-          <span class="gtmc-server-status__hint">{{i18n
-              "gtmc.server_status.loading"
-            }}</span>
-        </div>
-      {{/if}}
-    </section>
+      </section>
+    {{else if this.hasServers}}
+      <section
+        aria-label={{i18n "gtmc.server_status.title"}}
+        class="gtmc-server-status gtmc-server-status--loaded"
+      >
+        {{#each this.serverCards key="serverId" as |card|}}
+          <article
+            aria-label={{card.name}}
+            class="gtmc-server-card {{card.stateClass}}"
+            data-server-id={{card.serverId}}
+          >
+            <div class="gtmc-server-card__summary">
+              <span class="gtmc-server-card__name">{{card.name}}</span>
+              {{#if card.isOnline}}
+                <span class="gtmc-server-card__state">{{i18n
+                    "gtmc.server_status.online"
+                  }}</span>
+                <span
+                  class="gtmc-server-card__players"
+                >{{card.playersLabel}}</span>
+                {{#if card.versionLabel}}
+                  <span
+                    class="gtmc-server-card__version"
+                  >{{card.versionLabel}}</span>
+                {{/if}}
+              {{else}}
+                <span class="gtmc-server-card__state">{{i18n
+                    "gtmc.server_status.offline"
+                  }}</span>
+                <span class="gtmc-server-card__hint">{{i18n
+                    "gtmc.server_status.offline_hint"
+                  }}</span>
+              {{/if}}
+            </div>
+            {{#if card.isOnline}}
+              <div class="gtmc-server-card__links">
+                {{#if card.address}}
+                  <DCopyButton
+                    @ariaLabel={{card.copyAddressAriaLabel}}
+                    @copyClass="btn-default gtmc-server-card__address"
+                    @translatedLabel={{card.address}}
+                    @translatedLabelAfterCopy={{i18n
+                      "gtmc.server_status.copied"
+                    }}
+                    @value={{card.address}}
+                  />
+                {{/if}}
+                {{#if card.mapUrl}}
+                  <a
+                    class="gtmc-server-card__map"
+                    href={{card.mapUrl}}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >{{i18n "gtmc.server_status.map"}}</a>
+                {{/if}}
+              </div>
+            {{/if}}
+          </article>
+        {{/each}}
+      </section>
+    {{/if}}
   </template>
 }

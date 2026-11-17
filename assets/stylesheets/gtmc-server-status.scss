@@ -1,26 +1,60 @@
-// 首页服务器状态条。颜色和间距只用 Discourse 的 CSS 变量，不写死色值。
+// 首页服务器状态，每个服一张卡片。颜色和间距只用 Discourse 的 CSS 变量，不写死色值。
 .gtmc-server-status {
-  --gtmc-server-status-accent: var(--primary-medium);
+  // 卡片的最小宽度：放得下服名、状态、人数和版本一行。auto-fit 按它决定一行放几张；
+  // 只有一个服时那张卡片占满整行，摘要和地址左右分开，不会显得空；
+  // 容器比它窄（手机）时 min() 让卡片缩到容器宽度，变成纵向一列，不需要单独的断点。
+  --gtmc-server-card-min-width: 18rem;
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, var(--gtmc-server-card-min-width)), 1fr)
+  );
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+
+  &__notice {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--primary-low);
+    border-left: 4px solid var(--primary-medium);
+    border-radius: var(--d-border-radius);
+    background: var(--secondary);
+  }
+
+  &__headline {
+    font-weight: bold;
+    color: var(--primary);
+  }
+
+  &__hint {
+    color: var(--primary-medium);
+  }
+}
+
+.gtmc-server-card {
+  --gtmc-server-card-accent: var(--primary-medium);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2) var(--space-4);
-  margin-bottom: var(--space-4);
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--primary-low);
 
-  // 左侧加粗的状态色条，一眼分辨在线、离线、不可用
-  border-left: 4px solid var(--gtmc-server-status-accent);
+  // 左侧加粗的状态色条，一眼分辨在线、离线
+  border-left: 4px solid var(--gtmc-server-card-accent);
   border-radius: var(--d-border-radius);
   background: var(--secondary);
 
   &--online {
-    --gtmc-server-status-accent: var(--success);
+    --gtmc-server-card-accent: var(--success);
   }
 
   &--offline {
-    --gtmc-server-status-accent: var(--danger);
+    --gtmc-server-card-accent: var(--danger);
   }
 
   &__summary,
@@ -28,12 +62,16 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-1) var(--space-4);
+    gap: var(--space-1) var(--space-3);
   }
 
-  &__headline {
+  &__name {
     font-weight: bold;
     color: var(--primary);
+  }
+
+  &__state {
+    color: var(--gtmc-server-card-accent);
   }
 
   &__players,

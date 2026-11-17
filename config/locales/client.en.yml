@@ -4,14 +4,14 @@ en:
       server_status:
         title: "Minecraft server status"
         loading: "Checking the server status…"
-        online: "Server online"
-        offline: "Server offline"
+        online: "Online"
+        offline: "Offline"
         offline_hint: "The server is not responding right now. Please check back later."
         unavailable: "Status unavailable"
         unavailable_hint: "The forum could not get the server status. This page will keep retrying automatically."
-        players: "Players %{online} / %{max}"
+        players: "%{online} / %{max} players"
         version: "Version %{version}"
-        copy_address_aria_label: "Copy server address %{address}"
+        copy_address_aria_label: "Copy the address of %{name}: %{address}"
         copied: "Copied"
         map: "Live map"
   admin_js:
