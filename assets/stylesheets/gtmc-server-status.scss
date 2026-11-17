@@ -26,7 +26,8 @@
     gap: var(--space-1) var(--space-4);
     padding: var(--space-3) var(--space-4);
     border: 1px solid var(--content-border-color);
-    border-left: var(--gtmc-server-card-accent-width) solid var(--primary-medium);
+    border-left: var(--gtmc-server-card-accent-width) solid
+      var(--primary-medium);
     border-radius: var(--d-border-radius);
     background: var(--secondary);
   }
