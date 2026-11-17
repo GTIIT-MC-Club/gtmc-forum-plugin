@@ -134,11 +134,21 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
     end
   end
 
-  it "returns 404 when gtmc_enabled is off, even with a valid key" do
-    SiteSetting.gtmc_enabled = false
+  describe "when gtmc_enabled is off" do
+    before { SiteSetting.gtmc_enabled = false }
 
-    post_heartbeat
+    it "returns 404 to a global key" do
+      post_heartbeat(api_key: Fabricate(:api_key, user: Discourse.system_user))
 
-    expect(response.status).to eq(404)
+      expect(response.status).to eq(404)
+    end
+
+    # Discourse 只对已启用的插件提供它注册的作用域，并且在插件的 requires_plugin 检查之前
+    # 就校验 API Key，所以只勾了 gtmc:server 的 Key 拿到的是 403 而不是 404。
+    it "returns 403 to a gtmc:server key because the scope disappears with the plugin" do
+      post_heartbeat
+
+      expect(response.status).to eq(403)
+    end
   end
 end

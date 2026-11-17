@@ -29,7 +29,7 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛，第二
 
 | 设置 | 默认 | 说明 |
 |---|---|---|
-| `gtmc_enabled` | 开 | 关掉后插件的所有接口返回 404 |
+| `gtmc_enabled` | 开 | 关掉后插件的接口返回 404；但只勾了 `gtmc:server` 的 Key 会拿到 403，因为插件关闭时 Discourse 连同它的作用域一起停用 |
 | `gtmc_heartbeat_timeout_seconds` | 90 | 多久没收到心跳就算离线；MC 插件每 30 秒报一次，90 秒即连丢三次 |
 | `gtmc_server_address` | 空 | 首页状态组件展示的服务器地址，后端不读 |
 | `gtmc_map_url` | 空 | 地图入口网址，空则不显示，后端不读 |
