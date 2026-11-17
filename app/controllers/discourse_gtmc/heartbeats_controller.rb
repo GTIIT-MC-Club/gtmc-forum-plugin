@@ -8,6 +8,7 @@ module DiscourseGtmc
   #
   # 请求体必须是 JSON（Content-Type: application/json），数值字段必须是 JSON 数字：
   # 表单编码会把数字变成字符串，这里按类型严格校验，会返回 400。
+  # 格式正确但没在 gtmc_servers 里登记的 server_id 不是坏请求，而是业务结论，返回 200 + unknown_server。
   class HeartbeatsController < ::ApplicationController
     requires_plugin PLUGIN_NAME
 
@@ -21,13 +22,21 @@ module DiscourseGtmc
     before_action :ensure_server_api_request
 
     def create
-      ServerStatus.record_heartbeat(
+      server_id = server_id_param
+      heartbeat = {
         version: version_param,
         players_online: non_negative_integer_param(:players_online),
         players_max: non_negative_integer_param(:players_max),
         player_names: player_names_param,
         tps: tps_param,
-      )
+      }
+
+      if !ServerRegistry.registered_server_id?(server_id)
+        render json: { status: "unknown_server" }
+        return
+      end
+
+      ServerStatus.record_heartbeat(server_id: server_id, **heartbeat)
       render json: { status: "ok" }
     end
 
@@ -37,6 +46,12 @@ module DiscourseGtmc
     # is_api? 为真时 current_user 一定存在：Key 找不到用户时 Discourse 已经抛出 403。
     def ensure_server_api_request
       raise Discourse::InvalidAccess if !is_api? || !current_user.admin?
+    end
+
+    def server_id_param
+      server_id = params[:server_id]
+      raise Discourse::InvalidParameters.new(:server_id) if !server_id.is_a?(String)
+      server_id
     end
 
     def version_param

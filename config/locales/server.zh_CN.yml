@@ -1,6 +1,5 @@
 zh_CN:
   site_settings:
     gtmc_enabled: "启用 GTMC 插件（MC 服务器状态、账号绑定）。"
-    gtmc_heartbeat_timeout_seconds: "超过这么多秒没收到 MC 服务器的心跳，就显示为离线。"
-    gtmc_server_address: "展示给用户的 MC 服务器地址，例如 mc.example.com。仅用于显示。"
-    gtmc_map_url: "实时地图的网址。留空则不显示地图入口。"
+    gtmc_heartbeat_timeout_seconds: "某个 MC 服超过这么多秒没发来心跳，就显示为离线。"
+    gtmc_servers: "接入论坛的 MC 服，按这里的顺序显示。server_id 只能用 1–32 个小写字母、数字或连字符，不能重复，并且要和该服插件配置里的 server_id 完全一致；不符合的项会被忽略。name（展示名）和 address（连接地址）会展示给玩家；map_url 可留空，只有以 http:// 或 https:// 开头时才显示地图入口。"

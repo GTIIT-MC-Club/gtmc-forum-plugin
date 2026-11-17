@@ -9,10 +9,33 @@ discourse_gtmc:
     default: 90
     min: 30
     max: 3600
-  # 下面两项给首页状态组件（T2）展示用，插件后端不读。
-  gtmc_server_address:
-    default: ""
-    client: true
-  gtmc_map_url:
-    default: ""
-    client: true
+  # 登记接入论坛的 MC 服，契约见 PLAN.md 4.1。前端不直接读这个设置，展示用的字段由 status.json 带出，
+  # 所以不设 client: true。
+  # schema 不支持正则，server_id 的格式和唯一性由 ServerRegistry 在读取时检查，见 README。
+  # server_id 的 32 来自契约里的格式；其余长度上限只用来挡住误粘贴的大段文字，离真实值很远。
+  gtmc_servers:
+    type: objects
+    default: []
+    schema:
+      name: server
+      identifier: name
+      properties:
+        server_id:
+          type: string
+          required: true
+          validations:
+            max_length: 32
+        name:
+          type: string
+          required: true
+          validations:
+            max_length: 50
+        address:
+          type: string
+          required: true
+          validations:
+            max_length: 200
+        map_url:
+          type: string
+          validations:
+            max_length: 500

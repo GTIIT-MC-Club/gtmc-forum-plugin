@@ -1,6 +1,5 @@
 en:
   site_settings:
     gtmc_enabled: "Enable the GTMC plugin (Minecraft server status, account binding)."
-    gtmc_heartbeat_timeout_seconds: "Mark the Minecraft server as offline when no heartbeat has arrived for this many seconds."
-    gtmc_server_address: "Minecraft server address shown to users, e.g. mc.example.com. Display only."
-    gtmc_map_url: "URL of the live map. Leave empty to hide the map link."
+    gtmc_heartbeat_timeout_seconds: "Mark a Minecraft server as offline when no heartbeat has arrived from it for this many seconds."
+    gtmc_servers: "Minecraft servers shown on the forum, in display order. server_id must be 1–32 lowercase letters, digits or hyphens, unique, and identical to server_id in that server's plugin config; entries that break this are ignored. name and address are shown to users; map_url is optional; the map link is only shown when it starts with http:// or https://."
