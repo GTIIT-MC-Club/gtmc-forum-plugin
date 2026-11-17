@@ -29,6 +29,8 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
   end
 
   def status_of(server_id)
+    # 登录用户才拿得到 players，见 status_controller_spec
+    sign_in(user)
     get "/gtmc/status.json"
     response.parsed_body["servers"].find { |server| server["server_id"] == server_id }
   end
@@ -36,7 +38,7 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
   before do
     SiteSetting.gtmc_enabled = true
     SiteSetting.gtmc_servers = [
-      { server_id: "survival", name: "生存服", address: "survival.gtmc.test" },
+      { server_id: "survival", name: "生存服", address: "survival.gtmc.test", icon: "gtmc-bricks" },
     ].to_json
   end
 
@@ -54,7 +56,7 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
     expect(status_of("survival")).to include(
       "online" => true,
       "players_online" => 0,
-      "player_names" => [],
+      "players" => [],
     )
   end
 
@@ -72,8 +74,8 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
       expect(response.parsed_body).to eq("status" => "unknown_server")
       # 登记之后才能从 status.json 看到 creative；若刚才的心跳被存下了，这里会显示在线
       SiteSetting.gtmc_servers = [
-        { server_id: "survival", name: "生存服", address: "survival.gtmc.test" },
-        { server_id: "creative", name: "创造服", address: "creative.gtmc.test" },
+        { server_id: "survival", name: "生存服", address: "survival.gtmc.test", icon: "gtmc-bricks" },
+        { server_id: "creative", name: "创造服", address: "creative.gtmc.test", icon: "gtmc-hammer" },
       ].to_json
       expect(status_of("creative")["online"]).to eq(false)
     end
@@ -89,7 +91,7 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
 
     it "answers unknown_server for an entry whose server_id breaks the format" do
       SiteSetting.gtmc_servers = [
-        { server_id: "Survival", name: "生存服", address: "survival.gtmc.test" },
+        { server_id: "Survival", name: "生存服", address: "survival.gtmc.test", icon: "gtmc-bricks" },
       ].to_json
 
       post_heartbeat(body: heartbeat_body.merge(server_id: "Survival"))

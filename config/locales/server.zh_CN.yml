@@ -2,4 +2,5 @@ zh_CN:
   site_settings:
     gtmc_enabled: "启用 GTMC 插件（MC 服务器状态、账号绑定）。"
     gtmc_heartbeat_timeout_seconds: "某个 MC 服超过这么多秒没发来心跳，就显示为离线。"
-    gtmc_servers: "接入论坛的 MC 服，按这里的顺序显示。server_id 只能用 1–32 个小写字母、数字或连字符，不能重复，并且要和该服插件配置里的 server_id 完全一致；不符合的项会被忽略。name（展示名）和 address（连接地址）会展示给玩家；map_url 可留空，只有以 http:// 或 https:// 开头时才显示地图入口。"
+    gtmc_servers: "接入论坛的 MC 服。每项要填：server_id（1–32 个小写字母、数字或连字符，不能重复，并且要和该服插件配置里的 server_id 完全一致）、name（展示名）、address（连接地址）、icon（图标：选主题的 gtmc-* 图标，或 Font Awesome 图标）；color（#RRGGBB，可空）是图标的颜色，留空用主题强调色；map_url 可空，只有以 http:// 或 https:// 开头时才显示地图入口。不符合的项会被忽略，保存时日志里会记一行警告。显示顺序不由这里决定：在线且人数多的服排在前面，其余按这里的顺序排。"
+    gtmc_rail_visible_servers: "右栏「服务器」面板默认显示几个服，其余折叠在「+N」按钮后面。"

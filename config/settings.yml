@@ -39,3 +39,21 @@ discourse_gtmc:
           type: string
           validations:
             max_length: 500
+        # type: icon 在后台是图标选择器，gtmc-* 主题图标和 Font Awesome 图标都能选；
+        # 选中的图标会自动进入站点的图标精灵，前端才画得出来。
+        icon:
+          type: icon
+          required: true
+        # schema 没有颜色类型，格式（#RRGGBB）由 ServerRegistry 在读取时检查。
+        color:
+          type: string
+          validations:
+            max_length: 7
+  gtmc_rail_visible_servers:
+    # 右栏「服务器」面板默认展开的服数量，其余折叠。社团现在有 4 个服，默认折叠最后 1 个，
+    # 免得服务器面板把下面的「新人进服」挤出第一屏。前端要读，所以 client: true。
+    # 上限 20 远超社团的服数量，只用来挡住误填。
+    default: 3
+    min: 1
+    max: 20
+    client: true
