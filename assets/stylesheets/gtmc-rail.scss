@@ -200,7 +200,9 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
   align-items: center;
   gap: var(--space-1) var(--space-2);
   padding: var(--space-2) 0;
-  border-top: 1px solid var(--content-border-color);
+
+  // 虚线分隔，与设计稿一致；只是行与行之间的分隔，不是空状态的虚线框
+  border-top: 1px dashed var(--content-border-color);
   font-size: var(--font-down-1);
 
   &:first-child {
