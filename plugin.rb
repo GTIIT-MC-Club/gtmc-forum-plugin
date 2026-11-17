@@ -4,7 +4,7 @@
 # about: GTMC 论坛与 Minecraft 服务器的对接：服务器状态、账号绑定、进服验证
 # version: 0.1.0
 # authors: GTMC
-# url: https://github.com/CHANGEME/gtmc-discourse/tree/main/plugins/discourse-gtmc
+# url: https://github.com/GTIIT-MC-Club/gtmc-discourse/tree/main/plugins/discourse-gtmc
 
 enabled_site_setting :gtmc_enabled
 
