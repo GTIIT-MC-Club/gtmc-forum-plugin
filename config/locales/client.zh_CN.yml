@@ -1,19 +1,27 @@
 zh_CN:
   js:
     gtmc:
-      server_status:
-        title: "Minecraft 服务器状态"
+      servers:
+        title: "服务器"
         loading: "正在获取服务器状态…"
+        unavailable: "状态暂不可用"
+        refresh_tooltip: "每 %{seconds} 秒刷新"
+        total_players_tooltip:
+          other: "%{count} 个服务器的在线总人数"
         online: "在线"
         offline: "离线"
-        offline_hint: "服务器暂时没有响应，请稍后再来看看。"
-        unavailable: "状态暂不可用"
-        unavailable_hint: "论坛暂时无法获取服务器状态，页面会自动重试。"
-        players: "%{online} / %{max} 人"
-        version: "版本 %{version}"
+        version_tooltip: "游戏版本"
+        players_tooltip: "在线人数 / 上限"
+        nobody_placeholder: "暂无玩家"
+        offline_placeholder: "服务器离线"
+        sign_in_placeholder: "登录后可看到谁在线"
+        player_separator: "、"
+        copy_address: "复制地址 %{address}"
         copy_address_aria_label: "复制%{name}的地址 %{address}"
         copied: "已复制"
         map: "实时地图"
+        expand_tooltip: "展开全部服务器"
+        collapse_tooltip: "收起"
   admin_js:
     admin:
       site_settings:
