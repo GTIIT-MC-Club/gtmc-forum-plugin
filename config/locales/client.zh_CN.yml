@@ -25,6 +25,7 @@ zh_CN:
       newcomer:
         title: "新人进服"
         progress_tooltip: "已完成 %{done} 步，共 %{total} 步"
+        next_step: "下一步：%{step}"
         steps:
           register: "用校园邮箱注册"
           read_guide: "读一遍新人指南"

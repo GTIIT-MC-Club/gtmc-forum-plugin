@@ -26,6 +26,7 @@ en:
       newcomer:
         title: "Getting into the server"
         progress_tooltip: "%{done} of %{total} steps done"
+        next_step: "Next: %{step}"
         steps:
           register: "Sign up with your campus email"
           read_guide: "Read the newcomer guide"

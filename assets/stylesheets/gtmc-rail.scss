@@ -54,7 +54,12 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
   }
 }
 
+// 右栏和手机上的条、卡片以 lg（64rem）为界二选一：宽于它显示右栏，窄于它显示手机形态。
+// 主题（T5a）提供的右栏出口也要在这个宽度以下隐藏，两边才对得上。
 .gtmc-rail-panel {
+  @include viewport.until(lg) {
+    display: none;
+  }
   margin-bottom: var(--space-4);
   padding: var(--space-4);
   border: 1px solid var(--content-border-color);
@@ -446,5 +451,123 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
 
   &__when {
     color: var(--primary-medium);
+  }
+}
+
+// 手机形态：横向服务器状态条和新人进度卡，桌面宽度下隐藏（那时右栏在显示同样的内容）
+.gtmc-mobile-status-strip,
+.gtmc-mobile-newcomer {
+  @include viewport.from(lg) {
+    display: none;
+  }
+}
+
+.gtmc-mobile-status-strip {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &__chip {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--content-border-color);
+    border-radius: var(--d-border-radius);
+    background: var(--secondary);
+    font-size: var(--font-down-1);
+  }
+
+  &__total {
+    color: var(--primary-medium);
+
+    .d-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    b {
+      @include gtmc-pixel-text(24px);
+      color: var(--primary);
+    }
+  }
+
+  // 状态是 8px 的小方块：绿在线、红离线
+  &__state {
+    width: 8px;
+    height: 8px;
+    background: var(--success);
+  }
+
+  &__chip.is-offline &__state {
+    background: var(--danger);
+  }
+
+  &__count {
+    @include gtmc-pixel-text(12px);
+    color: var(--primary-medium);
+  }
+
+  &__offline {
+    color: var(--primary-medium);
+  }
+}
+
+.gtmc-mobile-newcomer {
+  margin-bottom: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--content-border-color);
+  border-radius: var(--d-border-radius);
+  background: var(--secondary);
+
+  &__title {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 0 var(--space-2);
+    font-size: var(--font-down-1);
+
+    small {
+      font-weight: normal;
+      color: var(--primary-medium);
+    }
+  }
+
+  // 进度条：6px 高的硬边条，已完成的部分是强调色
+  &__progress {
+    height: 6px;
+    margin-bottom: var(--space-3);
+    background: var(--content-border-color);
+
+    i {
+      display: block;
+      height: 100%;
+      background: var(--tertiary);
+    }
+  }
+
+  &__next {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  // 卡片里的去处是实心按钮，面板里是行内链接
+  .gtmc-newcomer-action {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--d-border-radius);
+    background: var(--tertiary);
+    color: var(--secondary);
+    font-weight: 600;
+    white-space: nowrap;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: none;
+      background: var(--tertiary-hover);
+    }
   }
 }
