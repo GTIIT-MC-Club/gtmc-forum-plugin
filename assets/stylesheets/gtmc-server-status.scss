@@ -3,7 +3,9 @@
   // 卡片的最小宽度：放得下服名、状态、人数和版本一行。auto-fit 按它决定一行放几张；
   // 只有一个服时那张卡片占满整行，摘要和地址左右分开，不会显得空；
   // 容器比它窄（手机）时 min() 让卡片缩到容器宽度，变成纵向一列，不需要单独的断点。
-  --gtmc-server-card-min-width: 18rem;
+  // 取 24rem：常见桌面宽度下话题栏约 1000px，一行放两张，4 个服排成 2×2；
+  // 18rem 时一行能放三张，4 个服会排成 3+1，第二行只剩一张，看着像缺了东西。
+  --gtmc-server-card-min-width: 24rem;
   display: grid;
   grid-template-columns: repeat(
     auto-fit,
