@@ -454,16 +454,14 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
   }
 }
 
-// 手机形态：横向服务器状态条和新人进度卡，桌面宽度下隐藏（那时右栏在显示同样的内容）
-.gtmc-mobile-status-strip,
-.gtmc-mobile-newcomer {
+// 手机形态：横向服务器状态条和新人进度卡，桌面宽度下隐藏（那时右栏在显示同样的内容）。
+// 隐藏规则放在各自的 display 之后，否则会被同优先级的 display 盖掉。
+.gtmc-mobile-status-strip {
+  display: flex;
+
   @include viewport.from(lg) {
     display: none;
   }
-}
-
-.gtmc-mobile-status-strip {
-  display: flex;
   gap: var(--space-2);
   margin-bottom: var(--space-2);
   overflow-x: auto;
@@ -517,6 +515,9 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
 }
 
 .gtmc-mobile-newcomer {
+  @include viewport.from(lg) {
+    display: none;
+  }
   margin-bottom: var(--space-2);
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--content-border-color);
