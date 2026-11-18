@@ -17,9 +17,9 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛，第二
 
 | 接口 | 调用方 | 说明 |
 |---|---|---|
-| `GET /gtmc/status.json` | 任何人 | `{refresh_interval_seconds, servers: [...]}`，`gtmc_servers` 里登记的每个服一项。`servers` 已排好序：在线的在前、按人数从多到少（人数相同按 `gtmc_servers` 的顺序），离线的按 `gtmc_servers` 的顺序。某服超过 `gtmc_heartbeat_timeout_seconds` 没收到心跳则该项 `online: false`，`version` 起的字段为 `null`；`map_url`、`color` 留空时为 `null`。`players` 是 `[{mc_name, avatar_template}]`，**只对登录用户返回**，游客拿到 `null`（人数照常返回），离线的服也是 `null`。P2 绑定上线前，头像都是用游戏名生成的字母头像（Discourse 自带的 `User.system_avatar_template`） |
-| `GET /gtmc/newcomer_guide.json` | 任何人 | `{topic_url, read}`：置顶的、标题以「新人指南」开头的帖子（与 `infra/discourse/sidebar.rb` 的约定一致）的地址，以及当前登录用户读过它没有（读到了第一帖即算；游客恒为 `false`）。找不到或当前用户看不见时 `topic_url` 为 `null` |
-| `POST /gtmc/server/heartbeat.json` | MC 插件 | 上报 `{server_id, version, players_online, players_max, player_names[], tps}`，返回 `{status: "ok"}`；`server_id` 没登记时返回 `{status: "unknown_server"}` 且不记录 |
+| `GET /gtmc/status.json` | 任何人 | 各服的状态，右栏和手机状态条用；字段与排序见 gtmc-forum-infra 的 `PLAN.md` 4.1 |
+| `GET /gtmc/newcomer_guide.json` | 任何人 | 新人指南帖的地址和当前用户读过没有；字段见 gtmc-forum-infra 的 `PLAN.md` 4.1 |
+| `POST /gtmc/server/heartbeat.json` | MC 插件 | MC 服上报心跳；请求体与返回见 gtmc-forum-infra 的 `PLAN.md` 4.1 |
 
 每个服只保留最近一次心跳，存在 Redis（键 `gtmc_server_last_heartbeat:<server_id>`）。Redis 清空的后果只是下一次心跳之前显示离线。
 从 `gtmc_servers` 里删掉的服，旧键留在 Redis 里也不影响结果：读取时只看登记过的服。
@@ -58,35 +58,21 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛，第二
 界面按 `design/mockups/c-*.html` 实现（规则见 `AGENTS.md`「界面规则」）。桌面的四个面板都渲染进主题（T5a）提供的
 `gtmc-right-rail` 出口，只在首页和版块页（路由名以 `discovery.` 开头）出现，话题页和标签页（路由 `tag.*`）不出现；`gtmc_enabled` 关闭时不渲染也不请求。
 面板按注册顺序从上到下：服务器、公告、新人进服、近期活动，入口在 `assets/javascripts/discourse/api-initializers/gtmc-right-rail.gjs`。
+每个面板显示什么、什么时候不出现、失败时显示什么，见各自的组件注释。
 
-- **服务器**（`gtmc-rail-servers.gjs`）：标题旁是刷新倒计时圆环，周期取接口的 `refresh_interval_seconds`；
-  圆环下是在线总人数；每个服一行，固定两行高：图标块（带状态角标）、服名、版本标签、人数；
-  头像叠放 5 个，其余折成 `+N`（悬停看名字），没人时放占位文字；右下是实时地图入口（有 `map_url` 时）和复制地址的按钮。
-  游客拿不到玩家名单，有人在线时第二行写「登录后可看到谁在线」。
-  超过 `gtmc_rail_visible_servers` 的服折叠，点「+N」展开。没有登记任何服时整个面板不出现；接口失败时显示「状态暂不可用」，不保留旧数据。
-- **公告**（`gtmc-rail-announcements.gjs`）：`gtmc_announcement_category` 版块里最新的 3 个话题，顺序照核心的版块列表
-  （置顶的在前，带主题的「置顶」标签），每条是标题（最多两行）和发帖日期；面板标题链到这个版块。
-  读核心的 `GET <版块地址>/l/latest.json`，只含当前用户看得见的话题。版块自带的「关于」帖在指定版块的列表里去不掉
-  （`no_definitions` 只对全站列表生效），所以在前端按版块数据里的 `topic_url` 比对去掉。
-  设置为空、或当前用户看不到这个版块时面板不出现，也不发请求；版块里没有话题时显示一句占位文字。
+- **服务器**（`gtmc-rail-servers.gjs`、`gtmc-server-row.gjs`）：刷新倒计时圆环、在线总人数、每个服一行；
+  超过 `gtmc_rail_visible_servers` 的服折叠在「+N」按钮后面。
+- **公告**（`gtmc-rail-announcements.gjs`）：`gtmc_announcement_category` 版块里最新的几个话题。
   设置由 `infra/discourse/sidebar.rb` 按版块名「公告」写入，不用手动填。
-- **新人进服**（`gtmc-rail-newcomer.gjs`）：注册、读新人指南、绑定游戏名、输入登录码四步。读指南用 `GET /gtmc/newcomer_guide.json`；
-  后两步在 P2、P3 做完之前恒为未完成，也没有去处，做完后改 `services/gtmc-newcomer.js` 的 `buildStep`。四步全完成后面板不再出现。
-  游客也会看到：第一步「注册」未完成，旁边有「去注册」。
-- **近期活动**（`gtmc-rail-events.gjs`）：读 `discourse-events` 插件的 `GET /discourse-post-event/events`
-  （接口按开始时间排好序，只含当前用户看得见的活动），最多 3 场，日期块 48×48。`discourse_events_enabled`
-  和 `discourse_post_event_enabled` 任一没开（或没装这个插件）时面板不出现，也不发请求；开着但没有活动时显示一句占位文字。
-- **手机**（`gtmc-mobile-status-strip.gjs`、`gtmc-mobile-newcomer.gjs`）：挂在 `discovery-above`，只在没按分类或标签筛选的首页显示。
-  横向服务器状态条（总人数 + 每个服的状态方块、服名、人数或「离线」）和新人进度卡（进度条 + 只显示下一步）。
-  下一步还没有去处（绑定游戏名要等 P2）时只显示文字，不放按钮。
+- **新人进服**（`gtmc-rail-newcomer.gjs`、`gtmc-newcomer-step-action.gjs`）：四步的进度，读指南用 `GET /gtmc/newcomer_guide.json`。
+- **近期活动**（`gtmc-rail-events.gjs`）：读 `discourse-events` 插件的 `GET /discourse-post-event/events`，最多 3 场。
+- **手机**（`gtmc-mobile-status-strip.gjs`、`gtmc-mobile-newcomer.gjs`）：挂在 `discovery-above`，横向服务器状态条加新人进度卡。
 
 右栏和手机形态以 core 的 `lg` 断点（64rem）为界：宽于它显示右栏，窄于它显示状态条和进度卡，
 两边的显示与隐藏都在 `assets/stylesheets/gtmc-rail.scss` 里。**主题的右栏出口要在同一个宽度以下隐藏。**
 
-数据和轮询：`services/gtmc-server-status.js` 是唯一的定时器，右栏面板和手机状态条共用。有组件在看且页面可见时每
-`refresh_interval_seconds` 请求一次；页面不可见时暂停，重新可见时立刻请求一次；没有组件在看时停止。
-响应里任何一项不合格就整体当作不可用（`lib/gtmc-server-status-response.js`），免得悄悄丢掉某个服。
-服的顺序就是接口返回的顺序，前端不再排。
+数据来自 `services/gtmc-server-status.js`：它是唯一的定时器，右栏面板和手机状态条共用一份轮询，
+轮询约定和失败时的行为见该文件的注释；响应校验在 `lib/gtmc-server-status-response.js`。
 
 面板里的悬停提示都写成 `data-tooltip`，由主题的全局提示服务显示；文案在 `config/locales/client.*.yml` 的 `js.gtmc` 下。
 样式只用 Discourse 的 CSS 变量；`--gtmc-duration-state`、`--gtmc-ease`、`--gtmc-font-pixel` 和 `gtmc-*` 图标由主题提供。

@@ -19,7 +19,6 @@
   transition-timing-function: var(--gtmc-ease);
 }
 
-// 浅底强调：悬停、选中用的淡绿底
 $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
 
 // 只有图标的按钮必须是正方形
@@ -274,7 +273,6 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
     white-space: nowrap;
   }
 
-  // 第三列统一右对齐：人数和按钮组的右边缘对齐
   &__count {
     @include gtmc-pixel-text(12px);
     justify-self: end;
@@ -294,6 +292,7 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
     margin-right: -5px;
 
     img {
+      // 与 gtmc-server-row.gjs 的 AVATAR_SIZE_PX 一致
       width: 24px;
       height: 24px;
       border-radius: var(--d-border-radius);
@@ -551,7 +550,6 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
     }
   }
 
-  // 状态是 8px 的小方块：绿在线、红离线
   &__state {
     width: 8px;
     height: 8px;
@@ -594,7 +592,6 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
     }
   }
 
-  // 进度条：6px 高的硬边条，已完成的部分是强调色
   &__progress {
     height: 6px;
     margin-bottom: var(--space-3);

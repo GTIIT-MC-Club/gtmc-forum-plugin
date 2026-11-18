@@ -5,8 +5,7 @@ import { i18n } from "discourse-i18n";
 import GtmcNewcomerStepAction from "./gtmc-newcomer-step-action.gjs";
 
 /**
- * 右栏「新人进服」面板：注册、读新人指南、绑定游戏名、输入登录码四步，渲染进 gtmc-right-rail 出口。
- * 数据还没取到时、以及四步全部完成后面板都不出现。
+ * 右栏「新人进服」面板，渲染进 gtmc-right-rail 出口。四步的定义见 services/gtmc-newcomer.js。
  */
 export default class GtmcRailNewcomer extends Component {
   @service gtmcNewcomer;

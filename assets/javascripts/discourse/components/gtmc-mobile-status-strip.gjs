@@ -5,11 +5,8 @@ import dIcon from "discourse/ui-kit/helpers/d-icon";
 import { i18n } from "discourse-i18n";
 
 /**
- * 手机首页顶部的横向服务器状态条：在线总人数 + 每个服一个小块（状态方块、服名、人数或「离线」），
- * 放不下时横向滚动。对应桌面右栏的「服务器」面板，数据来自同一个服务，不会多发请求。
- * 小块只显示结论；复制地址、玩家名单这些细节留给桌面右栏。
- *
- * 只在没有按分类或标签筛选的首页显示（shouldRender）；桌面宽度下由样式隐藏，因为那时右栏在显示同样的内容。
+ * 手机首页顶部的服务器状态条，对应桌面右栏的「服务器」面板，数据来自同一个服务，不会多发请求。
+ * 桌面宽度下由样式隐藏，因为那时右栏在显示同样的内容。
  */
 export default class GtmcMobileStatusStrip extends Component {
   // 分类页、标签页上重复出现只是干扰。放在 shouldRender 里而不是模板里，

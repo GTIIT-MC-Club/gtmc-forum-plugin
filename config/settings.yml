@@ -9,7 +9,7 @@ discourse_gtmc:
     default: 90
     min: 30
     max: 3600
-  # 登记接入论坛的 MC 服，契约见 PLAN.md 4.1。前端不直接读这个设置，展示用的字段由 status.json 带出，
+  # 登记接入论坛的 MC 服，契约见 gtmc-forum-infra 的 PLAN.md 4.1。前端不直接读这个设置，展示用的字段由 status.json 带出，
   # 所以不设 client: true。
   # schema 不支持正则，server_id 的格式和唯一性由 ServerRegistry 在读取时检查，见 README。
   # server_id 的 32 来自契约里的格式；其余长度上限只用来挡住误粘贴的大段文字，离真实值很远。

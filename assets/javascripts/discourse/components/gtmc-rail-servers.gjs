@@ -10,10 +10,7 @@ import GtmcRefreshRing from "./gtmc-refresh-ring.gjs";
 import GtmcServerRow from "./gtmc-server-row.gjs";
 
 /**
- * 右栏「服务器」面板，渲染进主题提供的 gtmc-right-rail 出口（见 PLAN.md T5b）。
- *
- * 标题旁是刷新倒计时圆环，下面是在线总人数和每个服一行。服的顺序就是接口返回的顺序（后端排好）；
- * 超过 gtmc_rail_visible_servers 的折叠在「+N」按钮后面。
+ * 右栏「服务器」面板，渲染进主题提供的 gtmc-right-rail 出口（见 gtmc-forum-infra 的 PLAN.md T5b）。
  * 没有登记任何服时整个面板不出现，免得首页上留一个空框。
  */
 export default class GtmcRailServers extends Component {
