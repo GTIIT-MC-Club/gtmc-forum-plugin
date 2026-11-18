@@ -1,7 +1,17 @@
 # discourse-gtmc
 
 GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛，第二期起负责账号绑定和进服验证。
-接口契约见仓库根目录 `PLAN.md` 第 4.1 节，代码规范见 `AGENTS.md`。
+
+## 契约与规范
+
+本仓库是从 [gtmc-forum-infra](https://github.com/GTIIT-MC-Club/gtmc-forum-infra) 拆出来的，计划和规范只放在那边：
+
+- 接口契约见 gtmc-forum-infra 的 [`PLAN.md` 第 4 节](https://github.com/GTIIT-MC-Club/gtmc-forum-infra/blob/main/PLAN.md#4-接口契约)，
+  改接口先改那一节，再改这里的代码（跨仓库的顺序见那份文件的第 2 节）。
+- 代码规范见 gtmc-forum-infra 的 [`AGENTS.md`](https://github.com/GTIIT-MC-Club/gtmc-forum-infra/blob/main/AGENTS.md)，本仓库同样遵守。
+- 代码注释和本文里的 `PLAN.md`、`AGENTS.md`、`infra/`、`design/` 都指 gtmc-forum-infra 里的文件。
+
+以 Apache-2.0 许可发布，见 [`LICENSE`](LICENSE)。
 
 ## 目前有什么（第一期）
 
@@ -113,7 +123,7 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛，第二
 
 ```sh
 # 在 Discourse 核心的检出目录里
-ln -s /path/to/gtmc-discourse/plugins/discourse-gtmc plugins/discourse-gtmc
+ln -s /path/to/gtmc-forum-plugin plugins/discourse-gtmc
 LOAD_PLUGINS=1 bin/rspec plugins/discourse-gtmc/spec
 ```
 
@@ -127,5 +137,6 @@ LOAD_PLUGINS=1 bin/qunit --standalone --target discourse-gtmc
 
 ## 部署
 
-生产环境由 `infra/discourse/app.yml` 的 `after_code` 钩子在重建时克隆本仓库并复制本目录进容器，
-改完插件代码后在自有机器上 `./launcher rebuild app` 生效。
+生产环境由 gtmc-forum-infra 里 `infra/discourse/app.yml` 的 `after_code` 钩子在重建时把本仓库克隆成容器里的 `plugins/discourse-gtmc`，
+插件名 `discourse-gtmc` 和站点设置前缀 `gtmc_` 不随仓库名改变。改完插件代码合并到 `main` 后，在论坛虚拟机上
+`./launcher rebuild app` 生效（后台「升级」页的 docker_manager 也能看到它落后几个提交）。
