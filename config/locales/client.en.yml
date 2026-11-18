@@ -1,0 +1,59 @@
+en:
+  js:
+    gtmc:
+      servers:
+        title: "Servers"
+        loading: "Checking the server status…"
+        unavailable: "Status unavailable"
+        refresh_tooltip: "Refreshes every %{seconds} seconds"
+        total_players_tooltip:
+          one: "Players online across %{count} server"
+          other: "Players online across %{count} servers"
+        online: "Online"
+        offline: "Offline"
+        version_tooltip: "Game version"
+        players_tooltip: "Players online / limit"
+        nobody_placeholder: "Nobody online"
+        offline_placeholder: "Server offline"
+        sign_in_placeholder: "Log in to see who is online"
+        player_separator: ", "
+        copy_address: "Copy address %{address}"
+        copy_address_aria_label: "Copy the address of %{name}: %{address}"
+        copied: "Copied"
+        map: "Live map"
+        expand_tooltip: "Show all servers"
+        collapse_tooltip: "Show fewer"
+      newcomer:
+        title: "Getting into the server"
+        progress_tooltip: "%{done} of %{total} steps done"
+        next_step: "Next: %{step}"
+        steps:
+          register: "Sign up with your campus email"
+          read_guide: "Read the newcomer guide"
+          bind_mc_name: "Link your Minecraft name"
+          enter_login_code: "Enter the login code in game"
+        actions:
+          sign_up: "Sign up"
+          read_guide: "Read it"
+      events:
+        title: "Upcoming events"
+        empty: "No upcoming events"
+        unavailable: "Events could not be loaded"
+        date_format: "ddd, MMM D"
+      announcements:
+        title: "Announcements"
+        more_tooltip: "See all announcements"
+        pinned: "Pinned"
+        empty: "No announcements yet"
+        unavailable: "Announcements could not be loaded"
+        date_format: "MMM D"
+  admin_js:
+    admin:
+      site_settings:
+        categories:
+          discourse_gtmc: "GTMC"
+      api:
+        scopes:
+          descriptions:
+            gtmc:
+              server: "For the GTMC Minecraft server plugin only: report heartbeats to the forum. Use with Api-Username: system."
