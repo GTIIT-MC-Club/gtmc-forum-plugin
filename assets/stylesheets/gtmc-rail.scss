@@ -1,7 +1,7 @@
 // 右栏面板（服务器、新人进服、近期活动）和手机上的状态条。形状、尺寸、状态以 design/mockups/c-*.html 为准，
 // 规则见 AGENTS.md「界面规则」。颜色、间距、字号只用 Discourse 的 CSS 变量和主题变量；
 // 每个服自己的图标颜色来自后台设置，经 --gtmc-server-color 传进来。
-// --gtmc-duration-state、--gtmc-ease、--gtmc-font-pixel 由主题提供（T5a）。
+// --gtmc-duration-state、--gtmc-ease、--gtmc-font-pixel 由主题提供。
 @use "lib/viewport";
 
 // 像素字体只用于标签、人数、日期，字号只取 12px 的整数倍并关闭抗锯齿；其余文字一律系统字体。
@@ -54,7 +54,7 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
 }
 
 // 右栏和手机上的条、卡片以 lg（64rem）为界二选一：宽于它显示右栏，窄于它显示手机形态。
-// 主题（T5a）提供的右栏出口也要在这个宽度以下隐藏，两边才对得上。
+// 主题提供的右栏出口也要在这个宽度以下隐藏，两边才对得上。
 .gtmc-rail-panel {
   @include viewport.until(lg) {
     display: none;
