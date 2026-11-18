@@ -5,11 +5,8 @@ import { i18n } from "discourse-i18n";
 import GtmcNewcomerStepAction from "./gtmc-newcomer-step-action.gjs";
 
 /**
- * 手机首页的新人进度卡：进度条加「下一步」。对应桌面右栏的「新人进服」面板，只显示下一步。
- * 数据还没取到时、以及四步全部完成后都不出现；桌面宽度下由样式隐藏。
- *
- * 下一步还没有去处（绑定游戏名、输入登录码要等 PLAN.md P2、P3）时只显示这句话，不放按钮：
- * 设计稿里的「去绑定」要等绑定页存在才有地方可去。
+ * 手机首页的新人进度卡，对应桌面右栏的「新人进服」面板。四步的定义见 services/gtmc-newcomer.js。
+ * 桌面宽度下由样式隐藏，因为那时右栏在显示同样的内容。
  */
 export default class GtmcMobileNewcomer extends Component {
   static shouldRender(outletArgs, context) {

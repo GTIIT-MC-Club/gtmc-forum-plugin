@@ -19,9 +19,7 @@ const COPIED_FEEDBACK_MILLIS = 1500;
 const AVATAR_SIZE_PX = 24;
 
 /**
- * 右栏「服务器」面板里的一行，固定两行高：
- * 第一行服名、版本、人数；第二行头像（没有时放占位文字）、地图入口和复制地址的按钮。
- * 有没有人、游客还是登录用户、在线还是离线，行高都一样。
+ * 右栏「服务器」面板里的一行。
  *
  * @param {Object} server status.json 里的一项，已通过 isUsableStatusResponse 校验
  * @param {boolean} isLoggedIn 游客看不到玩家名单，第二行放登录提示
