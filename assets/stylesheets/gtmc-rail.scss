@@ -456,6 +456,62 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
   }
 }
 
+.gtmc-rail-announcements {
+  &__more {
+    color: inherit;
+
+    @include gtmc-state-transition(color);
+
+    &:hover,
+    &:focus-visible {
+      color: var(--tertiary);
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: var(--font-down-1);
+    color: var(--primary);
+
+    @include gtmc-state-transition(color);
+
+    &:hover,
+    &:focus-visible {
+      color: var(--tertiary);
+    }
+  }
+
+  // 标题最多两行，再长就省略：右栏窄，一条公告不该把下面的面板推出第一屏
+  &__name {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  &__when {
+    color: var(--primary-medium);
+  }
+}
+
 // 手机形态：横向服务器状态条和新人进度卡，桌面宽度下隐藏（那时右栏在显示同样的内容）。
 // 隐藏规则放在各自的 display 之后，否则会被同优先级的 display 盖掉。
 .gtmc-mobile-status-strip {

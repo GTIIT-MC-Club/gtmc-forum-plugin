@@ -40,6 +40,13 @@ en:
         empty: "No upcoming events"
         unavailable: "Events could not be loaded"
         date_format: "ddd, MMM D"
+      announcements:
+        title: "Announcements"
+        more_tooltip: "See all announcements"
+        pinned: "Pinned"
+        empty: "No announcements yet"
+        unavailable: "Announcements could not be loaded"
+        date_format: "MMM D"
   admin_js:
     admin:
       site_settings:

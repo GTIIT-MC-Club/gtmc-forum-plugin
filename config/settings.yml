@@ -57,3 +57,9 @@ discourse_gtmc:
     min: 1
     max: 20
     client: true
+  gtmc_announcement_category:
+    # 右栏「公告」面板读哪个版块。由 infra/discourse/sidebar.rb 按名字「公告」找到版块后写入；
+    # 为空时面板不出现。前端要读，所以 client: true。
+    type: category
+    default: ""
+    client: true

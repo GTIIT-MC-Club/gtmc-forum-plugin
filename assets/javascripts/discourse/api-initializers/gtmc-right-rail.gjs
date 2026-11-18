@@ -1,5 +1,6 @@
 import { apiInitializer } from "discourse/lib/api";
 import GtmcOnDiscoveryRoutes from "../components/gtmc-on-discovery-routes.gjs";
+import GtmcRailAnnouncements from "../components/gtmc-rail-announcements.gjs";
 import GtmcRailEvents from "../components/gtmc-rail-events.gjs";
 import GtmcRailNewcomer from "../components/gtmc-rail-newcomer.gjs";
 import GtmcRailServers from "../components/gtmc-rail-servers.gjs";
@@ -15,6 +16,12 @@ export default apiInitializer((api) => {
     "gtmc-right-rail",
     <template>
       <GtmcOnDiscoveryRoutes><GtmcRailServers /></GtmcOnDiscoveryRoutes>
+    </template>
+  );
+  api.renderInOutlet(
+    "gtmc-right-rail",
+    <template>
+      <GtmcOnDiscoveryRoutes><GtmcRailAnnouncements /></GtmcOnDiscoveryRoutes>
     </template>
   );
   api.renderInOutlet(

@@ -45,15 +45,21 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛，第二
 
 ## 右栏面板和手机形态
 
-界面按 `design/mockups/c-*.html` 实现（规则见 `AGENTS.md`「界面规则」）。桌面的三个面板都渲染进主题（T5a）提供的
+界面按 `design/mockups/c-*.html` 实现（规则见 `AGENTS.md`「界面规则」）。桌面的四个面板都渲染进主题（T5a）提供的
 `gtmc-right-rail` 出口，只在首页和版块页（路由名以 `discovery.` 开头）出现，话题页和标签页（路由 `tag.*`）不出现；`gtmc_enabled` 关闭时不渲染也不请求。
-面板按注册顺序从上到下：服务器、新人进服、近期活动，入口在 `assets/javascripts/discourse/api-initializers/gtmc-right-rail.gjs`。
+面板按注册顺序从上到下：服务器、公告、新人进服、近期活动，入口在 `assets/javascripts/discourse/api-initializers/gtmc-right-rail.gjs`。
 
 - **服务器**（`gtmc-rail-servers.gjs`）：标题旁是刷新倒计时圆环，周期取接口的 `refresh_interval_seconds`；
   圆环下是在线总人数；每个服一行，固定两行高：图标块（带状态角标）、服名、版本标签、人数；
   头像叠放 5 个，其余折成 `+N`（悬停看名字），没人时放占位文字；右下是实时地图入口（有 `map_url` 时）和复制地址的按钮。
   游客拿不到玩家名单，有人在线时第二行写「登录后可看到谁在线」。
   超过 `gtmc_rail_visible_servers` 的服折叠，点「+N」展开。没有登记任何服时整个面板不出现；接口失败时显示「状态暂不可用」，不保留旧数据。
+- **公告**（`gtmc-rail-announcements.gjs`）：`gtmc_announcement_category` 版块里最新的 3 个话题，顺序照核心的版块列表
+  （置顶的在前，带主题的「置顶」标签），每条是标题（最多两行）和发帖日期；面板标题链到这个版块。
+  读核心的 `GET <版块地址>/l/latest.json`，只含当前用户看得见的话题。版块自带的「关于」帖在指定版块的列表里去不掉
+  （`no_definitions` 只对全站列表生效），所以在前端按版块数据里的 `topic_url` 比对去掉。
+  设置为空、或当前用户看不到这个版块时面板不出现，也不发请求；版块里没有话题时显示一句占位文字。
+  设置由 `infra/discourse/sidebar.rb` 按版块名「公告」写入，不用手动填。
 - **新人进服**（`gtmc-rail-newcomer.gjs`）：注册、读新人指南、绑定游戏名、输入登录码四步。读指南用 `GET /gtmc/newcomer_guide.json`；
   后两步在 P2、P3 做完之前恒为未完成，也没有去处，做完后改 `services/gtmc-newcomer.js` 的 `buildStep`。四步全完成后面板不再出现。
   游客也会看到：第一步「注册」未完成，旁边有「去注册」。
@@ -98,6 +104,7 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛，第二
 | `gtmc_heartbeat_timeout_seconds` | 90 | 某个服多久没收到心跳就算离线；MC 插件每 30 秒报一次，90 秒即连丢三次 |
 | `gtmc_servers` | 空 | 接入论坛的 MC 服，见上文「登记 MC 服」 |
 | `gtmc_rail_visible_servers` | 3 | 右栏「服务器」面板默认显示几个服，其余折叠在「+N」后面（1–20） |
+| `gtmc_announcement_category` | 空 | 右栏「公告」面板读哪个版块；为空不显示。由 `infra/discourse/sidebar.rb` 写入 |
 
 ## 测试
 
