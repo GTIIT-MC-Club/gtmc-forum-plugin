@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module DiscourseGtmc
-  # MC 插件定时上报的心跳，契约见 PLAN.md 4.1。
+  # MC 插件定时上报的心跳，契约见 gtmc-forum-infra 的 PLAN.md 4.1。
   #
   # 只接受管理员的 API Key（MC 插件用 Api-Username: system）。带作用域的 Key 必须勾了
   # gtmc:server，否则 Discourse 在进入本控制器之前就以 403 拒绝；不限作用域的全局 Key 也能用。

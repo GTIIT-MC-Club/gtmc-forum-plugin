@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module DiscourseGtmc
-  # 站点设置 gtmc_servers 里登记的 MC 服，契约见 PLAN.md 4.1。
+  # 站点设置 gtmc_servers 里登记的 MC 服，契约见 gtmc-forum-infra 的 PLAN.md 4.1。
   #
   # 设置的 schema 管不了 server_id、icon、color 的格式，也管不了 server_id 的唯一性，所以读取时过滤：
   # 不合格的项、重复 server_id 的后几项都当作没登记。读取发生在每次 status.json 请求里，不在这里记日志；
