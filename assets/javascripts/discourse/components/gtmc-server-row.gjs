@@ -168,10 +168,10 @@ export default class GtmcServerRow extends Component {
           <span class="gtmc-server-row__face" data-tooltip={{player.mcName}}>
             <img
               alt={{player.mcName}}
-              height="24"
+              height="{{AVATAR_SIZE_PX}}"
               loading="lazy"
               src={{player.avatarUrl}}
-              width="24"
+              width="{{AVATAR_SIZE_PX}}"
             />
           </span>
         {{/each}}

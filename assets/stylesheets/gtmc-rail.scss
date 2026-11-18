@@ -292,6 +292,7 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
     margin-right: -5px;
 
     img {
+      // 与 gtmc-server-row.gjs 的 AVATAR_SIZE_PX 一致
       width: 24px;
       height: 24px;
       border-radius: var(--d-border-radius);
