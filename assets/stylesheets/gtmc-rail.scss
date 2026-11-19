@@ -1,5 +1,5 @@
 // 右栏面板（服务器、新人进服、近期活动）和手机上的状态条。形状、尺寸、状态以 design/mockups/c-*.html 为准，
-// 规则见 AGENTS.md「界面规则」。颜色、间距、字号只用 Discourse 的 CSS 变量和主题变量；
+// 颜色、间距、字号只用 Discourse 的 CSS 变量和主题变量；
 // 每个服自己的图标颜色来自后台设置，经 --gtmc-server-color 传进来。
 // --gtmc-duration-state、--gtmc-ease、--gtmc-font-pixel 由主题提供。
 @use "lib/viewport";

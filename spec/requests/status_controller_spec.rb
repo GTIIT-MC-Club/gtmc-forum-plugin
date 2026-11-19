@@ -50,9 +50,8 @@ RSpec.describe DiscourseGtmc::StatusController do
   end
 
   def post_heartbeat(server_id:, players_online: 2, player_names: nil)
-    post "/gtmc/server/heartbeat.json",
+    put "/gtmc/servers/#{server_id}/heartbeat.json",
          params: {
-           server_id: server_id,
            version: "1.21.4-232-ver/1.21.4",
            players_online: players_online,
            players_max: 20,
@@ -64,7 +63,7 @@ RSpec.describe DiscourseGtmc::StatusController do
            "Api-Username" => "system",
          },
          as: :json
-    expect(response.parsed_body).to eq("status" => "ok")
+    expect(response.status).to eq(204)
   end
 
   # schema 在保存时已经挡掉了缺 icon、color 太长的值；这里模拟 schema 出现之前存下的旧数据

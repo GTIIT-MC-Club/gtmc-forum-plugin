@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module DiscourseGtmc
-  # 置顶的「新人指南」帖，右栏「新人进服」面板的第二步用它判断读没读过。契约见 gtmc-forum-infra 的 PLAN.md 4.1。
+  # 置顶的「新人指南」帖，右栏「新人进服」面板的第二步用它判断读没读过。
   class NewcomerGuide
     # 与 infra/discourse/sidebar.rb 的 NEWCOMER_GUIDE_TITLE_PREFIX 是同一个约定：
     # 新人指南是标题以此开头的置顶帖（来源 infra/content/newcomer-guide.md 的一级标题）。

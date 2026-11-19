@@ -44,7 +44,7 @@ module DiscourseGtmc
       Discourse.redis.set(redis_key(server_id), heartbeat.to_json)
     end
 
-    # 返回 gtmc-forum-infra 的 PLAN.md 4.1 中 GET /gtmc/status.json 的响应体。
+    # 返回 GET /gtmc/status.json 的响应体。
     #
     # include_players 为假（游客）时 players 为 nil，人数照常返回：玩家的游戏名是离线服里可以被冒用的身份，
     # 不对没登录的人公开。
@@ -97,7 +97,7 @@ module DiscourseGtmc
     end
     private_class_method :heartbeat_fields
 
-    # P2 绑定上线前，所有玩家都用游戏名生成字母头像；绑定后改用对应论坛账号的头像（gtmc-forum-infra 的 PLAN.md 4.1）。
+    # P2 绑定上线前，所有玩家都用游戏名生成字母头像；绑定后改用对应论坛账号的头像。
     # 用 User.system_avatar_template 而不是自己画：它遵循站点的头像设置，返回的模板里留着 {size}，
     # 前端按显示尺寸替换。不用 default_template：它会优先返回管理员配置的默认头像，
     # 那样所有玩家就是同一张图。

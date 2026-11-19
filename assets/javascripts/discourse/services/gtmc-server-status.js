@@ -13,7 +13,7 @@ const REQUEST_TIMEOUT_MILLIS = 10_000;
 const FALLBACK_REFRESH_INTERVAL_SECONDS = 30;
 
 /**
- * 轮询 GET /gtmc/status.json（契约见 PLAN.md 4.1），桌面右栏面板和手机状态条共用一份数据和一个定时器。
+ * 轮询 GET /gtmc/status.json，桌面右栏面板和手机状态条共用一份数据和一个定时器。
  *
  * 轮询约定：有组件在看（watch）且页面可见时，每 refresh_interval_seconds 请求一次；
  * 页面不可见时暂停，重新可见时立刻请求一次；没有组件在看时停止。

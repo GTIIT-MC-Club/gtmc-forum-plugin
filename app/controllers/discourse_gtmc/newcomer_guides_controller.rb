@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module DiscourseGtmc
-  # 右栏「新人进服」面板的第二步（读新人指南）用的数据，契约见 gtmc-forum-infra 的 PLAN.md 4.1。
+  # 右栏「新人进服」面板的第二步（读新人指南）用的数据。
   class NewcomerGuidesController < ::ApplicationController
     requires_plugin PLUGIN_NAME
 

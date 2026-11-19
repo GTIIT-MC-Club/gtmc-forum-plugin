@@ -1,4 +1,4 @@
-// status.json 的假数据，形状见 gtmc-forum-infra 的 PLAN.md 4.1。
+// status.json 的假数据。
 
 export const OFFLINE_FIELDS = {
   online: false,

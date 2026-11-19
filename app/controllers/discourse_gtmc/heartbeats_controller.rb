@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 module DiscourseGtmc
-  # MC 插件定时上报的心跳，契约见 gtmc-forum-infra 的 PLAN.md 4.1。
+  # MC 插件定时上报的心跳：PUT /gtmc/servers/:server_id/heartbeat，接口说明见 README。
   #
   # 只接受管理员的 API Key（MC 插件用 Api-Username: system）。带作用域的 Key 必须勾了
   # gtmc:server，否则 Discourse 在进入本控制器之前就以 403 拒绝；不限作用域的全局 Key 也能用。
   #
   # 请求体必须是 JSON（Content-Type: application/json），数值字段必须是 JSON 数字：
   # 表单编码会把数字变成字符串，这里按类型严格校验，会返回 400。
-  # 格式正确但没在 gtmc_servers 里登记的 server_id 不是坏请求，而是业务结论，返回 200 + unknown_server。
+  # 没在 gtmc_servers 里登记的 server_id（含格式不对的，路由约束直接挡掉）返回 404；成功返回 204，没有响应体。
   class HeartbeatsController < ::ApplicationController
     requires_plugin PLUGIN_NAME
 
@@ -21,8 +21,10 @@ module DiscourseGtmc
 
     before_action :ensure_server_api_request
 
-    def create
-      server_id = server_id_param
+    def update
+      server_id = params[:server_id]
+      raise Discourse::NotFound if !ServerRegistry.registered_server_id?(server_id)
+
       heartbeat = {
         version: version_param,
         players_online: non_negative_integer_param(:players_online),
@@ -31,13 +33,8 @@ module DiscourseGtmc
         tps: tps_param,
       }
 
-      if !ServerRegistry.registered_server_id?(server_id)
-        render json: { status: "unknown_server" }
-        return
-      end
-
       ServerStatus.record_heartbeat(server_id: server_id, **heartbeat)
-      render json: { status: "ok" }
+      head :no_content
     end
 
     private
@@ -46,12 +43,6 @@ module DiscourseGtmc
     # is_api? 为真时 current_user 一定存在：Key 找不到用户时 Discourse 已经抛出 403。
     def ensure_server_api_request
       raise Discourse::InvalidAccess if !is_api? || !current_user.admin?
-    end
-
-    def server_id_param
-      server_id = params[:server_id]
-      raise Discourse::InvalidParameters.new(:server_id) if !server_id.is_a?(String)
-      server_id
     end
 
     def version_param

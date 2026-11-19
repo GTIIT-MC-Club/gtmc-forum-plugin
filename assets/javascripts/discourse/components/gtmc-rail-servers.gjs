@@ -10,7 +10,7 @@ import GtmcRefreshRing from "./gtmc-refresh-ring.gjs";
 import GtmcServerRow from "./gtmc-server-row.gjs";
 
 /**
- * 右栏「服务器」面板，渲染进主题提供的 gtmc-right-rail 出口（见 gtmc-forum-infra 的 PLAN.md 4.4）。
+ * 右栏「服务器」面板，渲染进主题提供的 gtmc-right-rail 出口（）。
  * 没有登记任何服时整个面板不出现，免得首页上留一个空框。
  */
 export default class GtmcRailServers extends Component {

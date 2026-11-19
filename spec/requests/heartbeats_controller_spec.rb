@@ -6,7 +6,6 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
 
   let(:heartbeat_body) do
     {
-      server_id: "survival",
       version: "1.21.4-232-ver/1.21.4",
       players_online: 2,
       players_max: 20,
@@ -23,9 +22,14 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
     )
   end
 
-  def post_heartbeat(body: heartbeat_body, api_key: gtmc_server_api_key, username: "system")
+  def post_heartbeat(
+    body: heartbeat_body,
+    api_key: gtmc_server_api_key,
+    username: "system",
+    server_id: "survival"
+  )
     headers = api_key ? { "Api-Key" => api_key.key, "Api-Username" => username } : {}
-    post "/gtmc/server/heartbeat.json", params: body, headers: headers, as: :json
+    put "/gtmc/servers/#{server_id}/heartbeat.json", params: body, headers: headers, as: :json
   end
 
   def status_of(server_id)
@@ -42,17 +46,17 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
     ].to_json
   end
 
-  it "accepts a heartbeat from a gtmc:server key and answers with status ok" do
+  it "accepts a heartbeat from a gtmc:server key and answers 204 with no body" do
     post_heartbeat
 
-    expect(response.status).to eq(200)
-    expect(response.parsed_body).to eq("status" => "ok")
+    expect(response.status).to eq(204)
+    expect(response.body).to be_empty
   end
 
   it "accepts a heartbeat from an empty server" do
     post_heartbeat(body: heartbeat_body.merge(players_online: 0, player_names: []))
 
-    expect(response.status).to eq(200)
+    expect(response.status).to eq(204)
     expect(status_of("survival")).to include(
       "online" => true,
       "players_online" => 0,
@@ -63,15 +67,14 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
   it "accepts a heartbeat from a global key without scopes" do
     post_heartbeat(api_key: Fabricate(:api_key, user: Discourse.system_user))
 
-    expect(response.status).to eq(200)
+    expect(response.status).to eq(204)
   end
 
   describe "server_id" do
-    it "answers unknown_server for a server_id that is not in gtmc_servers and records nothing" do
-      post_heartbeat(body: heartbeat_body.merge(server_id: "creative"))
+    it "answers 404 for a server_id that is not in gtmc_servers and records nothing" do
+      post_heartbeat(server_id: "creative")
 
-      expect(response.status).to eq(200)
-      expect(response.parsed_body).to eq("status" => "unknown_server")
+      expect(response.status).to eq(404)
       # 登记之后才能从 status.json 看到 creative；若刚才的心跳被存下了，这里会显示在线
       SiteSetting.gtmc_servers = [
         { server_id: "survival", name: "生存服", address: "survival.gtmc.test", icon: "gtmc-bricks" },
@@ -80,35 +83,22 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
       expect(status_of("creative")["online"]).to eq(false)
     end
 
-    it "answers unknown_server for every server_id when gtmc_servers is empty" do
+    it "answers 404 for every server_id when gtmc_servers is empty" do
       SiteSetting.gtmc_servers = "[]"
 
       post_heartbeat
 
-      expect(response.status).to eq(200)
-      expect(response.parsed_body).to eq("status" => "unknown_server")
+      expect(response.status).to eq(404)
     end
 
-    it "answers unknown_server for an entry whose server_id breaks the format" do
+    it "answers 404 for an entry whose server_id breaks the format" do
       SiteSetting.gtmc_servers = [
         { server_id: "Survival", name: "生存服", address: "survival.gtmc.test", icon: "gtmc-bricks" },
       ].to_json
 
-      post_heartbeat(body: heartbeat_body.merge(server_id: "Survival"))
+      post_heartbeat(server_id: "Survival")
 
-      expect(response.parsed_body).to eq("status" => "unknown_server")
-    end
-
-    it "rejects a heartbeat without server_id" do
-      post_heartbeat(body: heartbeat_body.except(:server_id))
-
-      expect(response.status).to eq(400)
-    end
-
-    it "rejects a server_id that is not a string" do
-      post_heartbeat(body: heartbeat_body.merge(server_id: 1))
-
-      expect(response.status).to eq(400)
+      expect(response.status).to eq(404)
     end
   end
 
