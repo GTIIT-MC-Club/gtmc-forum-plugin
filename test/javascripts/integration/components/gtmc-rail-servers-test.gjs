@@ -334,6 +334,38 @@ module("Integration | Component | GtmcRailServers", function (hooks) {
       .hasAttribute("data-tooltip", i18n("gtmc.servers.copied"));
   });
 
+  test("lets you pick which address to copy when there are several", async function (assert) {
+    const writeText = sinon.stub(window.navigator.clipboard, "writeText").resolves();
+    respondWith(
+      statusResponse([
+        {
+          ...onlineServer("survival", "生存服"),
+          address: "10.0.0.5:25565",
+          addresses: [
+            { label: "内网", address: "10.0.0.5:25565" },
+            { label: "外网", address: "play.gtmc.test:12345" },
+          ],
+        },
+      ])
+    );
+    await render(<template><GtmcRailServers /></template>);
+
+    await click(`${rowOf("survival")} .gtmc-server-row__copy`);
+    assert.false(writeText.called, "opening the menu copies nothing yet");
+    assert
+      .dom(".gtmc-address-menu__item")
+      .exists({ count: 2 })
+      .hasText("内网 10.0.0.5:25565");
+
+    await click(".gtmc-address-menu li:nth-child(2) .gtmc-address-menu__item");
+
+    assert.true(writeText.calledOnceWith("play.gtmc.test:12345"));
+    assert.dom(".gtmc-address-menu").doesNotExist();
+    assert
+      .dom(`${rowOf("survival")} .gtmc-server-row__copy`)
+      .hasAttribute("data-tooltip", i18n("gtmc.servers.copied"));
+  });
+
   test("links to the live map only when the map url is http(s)", async function (assert) {
     respondWith(
       statusResponse([

@@ -30,9 +30,25 @@ discourse_gtmc:
           required: true
           validations:
             max_length: 50
+        # 玩家连接用的地址，可以有好几个（内网、外网），右栏上点复制按钮时选。
+        # address 是只有一个地址时的旧写法，addresses 为空时才用它。
+        addresses:
+          type: objects
+          schema:
+            name: address
+            identifier: label
+            properties:
+              label:
+                type: string
+                validations:
+                  max_length: 20
+              address:
+                type: string
+                required: true
+                validations:
+                  max_length: 200
         address:
           type: string
-          required: true
           validations:
             max_length: 200
         map_url:

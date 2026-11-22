@@ -16,11 +16,21 @@ function isUsablePlayer(player) {
   );
 }
 
+function isUsableAddress(item) {
+  return (
+    typeof item?.address === "string" &&
+    isNullOr(item.label, (label) => typeof label === "string")
+  );
+}
+
 function isUsableServer(server) {
   if (
     typeof server?.server_id !== "string" ||
     typeof server.name !== "string" ||
     typeof server.address !== "string" ||
+    !Array.isArray(server.addresses) ||
+    server.addresses.length === 0 ||
+    !server.addresses.every(isUsableAddress) ||
     typeof server.icon !== "string" ||
     !isNullOr(server.color, (color) => COLOR_PATTERN.test(color)) ||
     !isNullOr(server.map_url, (mapUrl) => typeof mapUrl === "string") ||

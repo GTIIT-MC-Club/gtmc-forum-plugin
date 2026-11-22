@@ -51,18 +51,18 @@ RSpec.describe DiscourseGtmc::StatusController do
 
   def post_heartbeat(server_id:, players_online: 2, player_names: nil)
     put "/gtmc/servers/#{server_id}/heartbeat.json",
-         params: {
-           version: "1.21.4-232-ver/1.21.4",
-           players_online: players_online,
-           players_max: 20,
-           player_names: player_names || Array.new(players_online) { |index| "Player#{index}" },
-           tps: 19.98,
-         },
-         headers: {
-           "Api-Key" => server_api_key.key,
-           "Api-Username" => "system",
-         },
-         as: :json
+        params: {
+          version: "1.21.4-232-ver/1.21.4",
+          players_online: players_online,
+          players_max: 20,
+          player_names: player_names || Array.new(players_online) { |index| "Player#{index}" },
+          tps: 19.98,
+        },
+        headers: {
+          "Api-Key" => server_api_key.key,
+          "Api-Username" => "system",
+        },
+        as: :json
     expect(response.status).to eq(204)
   end
 
@@ -115,6 +115,7 @@ RSpec.describe DiscourseGtmc::StatusController do
           "server_id" => "survival",
           "name" => "生存服",
           "address" => "survival.gtmc.test",
+          "addresses" => [{ "label" => nil, "address" => "survival.gtmc.test" }],
           "map_url" => "https://map.gtmc.test/survival",
           "icon" => "gtmc-bricks",
           "color" => "#5dbb47",
@@ -124,6 +125,7 @@ RSpec.describe DiscourseGtmc::StatusController do
           "server_id" => "creative",
           "name" => "创造服",
           "address" => "creative.gtmc.test",
+          "addresses" => [{ "label" => nil, "address" => "creative.gtmc.test" }],
           "map_url" => nil,
           "icon" => "gtmc-hammer",
           "color" => nil,
@@ -131,6 +133,37 @@ RSpec.describe DiscourseGtmc::StatusController do
         },
       ],
     )
+  end
+
+  it "lists every address with its label and uses the first one as address" do
+    register_servers(
+      survival_server.merge(
+        address: "",
+        addresses: [
+          { label: "内网", address: "10.0.0.5:25565" },
+          { label: "", address: "play.gtmc.test:12345" },
+        ],
+      ),
+    )
+
+    survival = statuses_by_server_id["survival"]
+
+    expect(survival["address"]).to eq("10.0.0.5:25565")
+    expect(survival["addresses"]).to eq(
+      [
+        { "label" => "内网", "address" => "10.0.0.5:25565" },
+        { "label" => nil, "address" => "play.gtmc.test:12345" },
+      ],
+    )
+  end
+
+  it "ignores a server that has no address at all" do
+    store_servers_bypassing_schema(
+      survival_server.merge(address: "", addresses: []),
+      creative_server,
+    )
+
+    expect(statuses_by_server_id.keys).to eq(["creative"])
   end
 
   it "keeps the order of gtmc_servers while no server is online" do

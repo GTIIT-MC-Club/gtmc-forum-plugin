@@ -335,6 +335,19 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
   }
 }
 
+// 多个地址时复制按钮弹出的菜单。菜单渲染在 body 下，不在 .gtmc-server-row 里面
+.gtmc-address-menu {
+  margin: 0;
+  padding: var(--space-1) 0;
+  list-style: none;
+
+  &__item {
+    width: 100%;
+    justify-content: flex-start;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
 .gtmc-rail-newcomer {
   &__steps {
     display: flex;

@@ -21,8 +21,24 @@ module DiscourseGtmc
     QUERY_ADDRESS_PATTERN = /\A([a-z0-9.-]{1,253}):(\d{1,5})\z/i
 
     # query_host、query_port 不进 status.json：那是公开接口，这里通常是局域网地址。
+    Address = Data.define(:label, :address)
+
+    # addresses 至少一项，第一项也作为 status.json 里的 address（旧前端只认它）。
     Server =
-      Data.define(:server_id, :name, :address, :map_url, :icon, :color, :query_host, :query_port)
+      Data.define(
+        :server_id,
+        :name,
+        :addresses,
+        :map_url,
+        :icon,
+        :color,
+        :query_host,
+        :query_port,
+      ) do
+        def address
+          addresses.first.address
+        end
+      end
 
     # 按设置里的顺序返回。
     def self.servers
@@ -32,7 +48,7 @@ module DiscourseGtmc
         Server.new(
           server_id: entry["server_id"],
           name: entry["name"],
-          address: entry["address"],
+          addresses: addresses_of(entry),
           map_url: entry["map_url"].presence,
           icon: entry["icon"],
           # 统一成小写，前端和测试只需面对一种写法
@@ -63,6 +79,24 @@ module DiscourseGtmc
         )
       end
     end
+
+    # addresses 里地址为空的项跳过；addresses 一项都没有时退回旧的 address
+    def self.addresses_of(entry)
+      listed =
+        Array(entry["addresses"]).filter_map do |item|
+          next if !item.is_a?(Hash) || !item["address"].is_a?(String) || item["address"].blank?
+          label = item["label"].is_a?(String) ? item["label"].strip.presence : nil
+          Address.new(label: label, address: item["address"].strip)
+        end
+      return listed if listed.any?
+      address = entry["address"]
+      if address.is_a?(String) && address.present?
+        [Address.new(label: nil, address: address.strip)]
+      else
+        []
+      end
+    end
+    private_class_method :addresses_of
 
     # 返回 [host, port]；没填或不合格返回 nil
     def self.parse_query_address(query_address)
@@ -96,6 +130,8 @@ module DiscourseGtmc
 
       if !server_id.is_a?(String) || !SERVER_ID_PATTERN.match?(server_id)
         "server_id must match #{SERVER_ID_PATTERN.inspect}"
+      elsif addresses_of(entry).empty?
+        "addresses (or address) must have at least one address"
       elsif !icon.is_a?(String) || !ICON_PATTERN.match?(icon)
         "icon must be set and match #{ICON_PATTERN.inspect}"
       elsif color.present? && (!color.is_a?(String) || !COLOR_PATTERN.match?(color))

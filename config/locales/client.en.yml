@@ -19,6 +19,7 @@ en:
         player_separator: ", "
         copy_address: "Copy address %{address}"
         copy_address_aria_label: "Copy the address of %{name}: %{address}"
+        choose_address: "Choose an address to copy"
         copied: "Copied"
         map: "Live map"
         expand_tooltip: "Show all servers"

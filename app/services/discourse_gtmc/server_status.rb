@@ -58,6 +58,7 @@ module DiscourseGtmc
             server_id: server.server_id,
             name: server.name,
             address: server.address,
+            addresses: server.addresses.map { |item| { label: item.label, address: item.address } },
             map_url: server.map_url,
             icon: server.icon,
             color: server.color,

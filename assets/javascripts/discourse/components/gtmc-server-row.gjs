@@ -1,10 +1,13 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
+import { fn } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { trustHTML } from "@ember/template";
+import DMenu from "discourse/float-kit/components/d-menu";
 import { avatarUrl } from "discourse/lib/avatar-utils";
 import { clipboardCopy } from "discourse/lib/utilities";
+import DButton from "discourse/ui-kit/d-button";
 import dIcon from "discourse/ui-kit/helpers/d-icon";
 import { i18n } from "discourse-i18n";
 import { safeMapUrl } from "../lib/gtmc-server-status-response.js";
@@ -28,6 +31,7 @@ export default class GtmcServerRow extends Component {
   @tracked isAddressCopied = false;
 
   copiedFeedbackTimer = null;
+  addressMenu = null;
 
   willDestroy() {
     super.willDestroy(...arguments);
@@ -102,23 +106,55 @@ export default class GtmcServerRow extends Component {
     return safeMapUrl(this.server.map_url);
   }
 
+  // 多个地址（内网、外网）时复制按钮弹出菜单让人选，只有一个时直接复制
+  get addresses() {
+    return this.server.addresses.map((item) => ({
+      address: item.address,
+      text: item.label ? `${item.label} ${item.address}` : item.address,
+    }));
+  }
+
+  get hasManyAddresses() {
+    return this.addresses.length > 1;
+  }
+
+  get addressesText() {
+    return this.addresses
+      .map((item) => item.text)
+      .join(i18n("gtmc.servers.player_separator"));
+  }
+
   get copyTooltip() {
-    return this.isAddressCopied
-      ? i18n("gtmc.servers.copied")
-      : i18n("gtmc.servers.copy_address", { address: this.server.address });
+    if (this.isAddressCopied) {
+      return i18n("gtmc.servers.copied");
+    }
+    return this.hasManyAddresses
+      ? i18n("gtmc.servers.choose_address")
+      : i18n("gtmc.servers.copy_address", { address: this.addressesText });
   }
 
   get copyAriaLabel() {
     return i18n("gtmc.servers.copy_address_aria_label", {
       name: this.server.name,
-      address: this.server.address,
+      address: this.addressesText,
     });
   }
 
   @action
-  async copyAddress() {
+  registerAddressMenu(api) {
+    this.addressMenu = api;
+  }
+
+  @action
+  async copyFromMenu(address) {
+    await this.addressMenu?.close();
+    await this.copyAddress(address);
+  }
+
+  @action
+  async copyAddress(address = this.server.address) {
     try {
-      await clipboardCopy(this.server.address);
+      await clipboardCopy(address);
     } catch {
       // 浏览器拒绝写剪贴板（非 https、没有权限）：不改变提示，地址仍显示在按钮的悬停提示里，可以手抄
       return;
@@ -168,10 +204,10 @@ export default class GtmcServerRow extends Component {
           <span class="gtmc-server-row__face" data-tooltip={{player.mcName}}>
             <img
               alt={{player.mcName}}
-              height="{{AVATAR_SIZE_PX}}"
+              height={{AVATAR_SIZE_PX}}
               loading="lazy"
               src={{player.avatarUrl}}
-              width="{{AVATAR_SIZE_PX}}"
+              width={{AVATAR_SIZE_PX}}
             />
           </span>
         {{/each}}
@@ -198,13 +234,42 @@ export default class GtmcServerRow extends Component {
             target="_blank"
           >{{dIcon "gtmc-compass"}}</a>
         {{/if}}
-        <button
-          aria-label={{this.copyAriaLabel}}
-          class="gtmc-icon-button gtmc-server-row__copy"
-          data-tooltip={{this.copyTooltip}}
-          type="button"
-          {{on "click" this.copyAddress}}
-        >{{dIcon (if this.isAddressCopied "check" "gtmc-copy")}}</button>
+        {{#if this.hasManyAddresses}}
+          <DMenu
+            aria-label={{this.copyAriaLabel}}
+            data-tooltip={{this.copyTooltip}}
+            @identifier="gtmc-server-address"
+            @onRegisterApi={{this.registerAddressMenu}}
+            @placement="bottom-end"
+            @triggerClass="gtmc-icon-button gtmc-server-row__copy"
+          >
+            <:trigger>
+              {{dIcon (if this.isAddressCopied "check" "gtmc-copy")}}
+            </:trigger>
+            <:content>
+              <ul class="gtmc-address-menu">
+                {{#each this.addresses as |item|}}
+                  <li>
+                    <DButton
+                      class="btn-transparent gtmc-address-menu__item"
+                      @action={{fn this.copyFromMenu item.address}}
+                      @icon="gtmc-copy"
+                      @translatedLabel={{item.text}}
+                    />
+                  </li>
+                {{/each}}
+              </ul>
+            </:content>
+          </DMenu>
+        {{else}}
+          <button
+            aria-label={{this.copyAriaLabel}}
+            class="gtmc-icon-button gtmc-server-row__copy"
+            data-tooltip={{this.copyTooltip}}
+            type="button"
+            {{on "click" (fn this.copyAddress this.server.address)}}
+          >{{dIcon (if this.isAddressCopied "check" "gtmc-copy")}}</button>
+        {{/if}}
       </div>
     </div>
   </template>

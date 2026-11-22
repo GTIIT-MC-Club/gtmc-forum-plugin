@@ -84,6 +84,7 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
       "server_id": "survival",
       "name": "生存服",
       "address": "survival.example.com",
+      "addresses": [{ "label": "外网", "address": "survival.example.com" }],
       "map_url": "https://map.example.com/survival",
       "icon": "gtmc-bricks",
       "color": "#5DBB47",
@@ -99,6 +100,8 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 }
 ```
 
+`address` 是 `addresses` 的第一项，给只认一个地址的旧前端用。
+
 在线的服排在前面，按人数从多到少，其余按登记顺序。离线的服 `online` 是 `false`，
 `version`、`players_online`、`players_max`、`players`、`tps`、`updated_at` 都是 `null`。
 
@@ -112,7 +115,8 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 |---|---|---|
 | `server_id` | 是 | 1–32 个小写字母、数字或连字符，如 `survival`。必须和该服 MC 插件配置里的 `server_id` 一字不差 |
 | `name` | 是 | 右栏和手机状态条上的展示名，如「生存服」 |
-| `address` | 是 | 玩家连接用的地址，如 `survival.example.com`，右栏上点复制按钮即复制。只用于展示 |
+| `addresses` | 是 | 玩家连接用的地址，可以填好几个，每个有 `label`（如「内网」「外网」，可空）和 `address`（如 `survival.example.com`）。只有一个时右栏上点复制按钮直接复制，有多个时弹出菜单选。只用于展示 |
+| `address` | 否 | 只有一个地址时的旧写法，`addresses` 为空时才用 |
 | `map_url` | 否 | 实时地图的网址。留空则不显示地图入口；不以 `http://` 或 `https://` 开头的也不显示 |
 | `icon` | 是 | 服务器图标。后台里是图标选择器（Discourse 的 `type: icon`），搜索 `gtmc` 能选到主题提供的像素图标（`gtmc-bricks`、`gtmc-hammer`、`gtmc-cake`、`gtmc-gear`、`gtmc-chest` 等，见 gtmc-discourse-forum 的 `design/brand/icons-8x8/`），也能选 Font Awesome 图标。选中的图标会自动进入站点的图标精灵，不用另外登记 |
 | `color` | 否 | 图标颜色，`#RRGGBB`，如 `#5DBB47`。留空用主题强调色 |
@@ -121,7 +125,7 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 列表的顺序只决定离线的服、以及人数相同的服的先后：在线的服按人数从多到少排在前面。
 
 设置的 schema 管不了 `server_id` 的格式和唯一性、`color` 的格式，所以插件读取时会**忽略**这些项：
-`server_id` 格式不对、没填 `icon` 或 `icon` 不是图标名、`color` 不是 `#RRGGBB`、以及和前面某项 `server_id` 重复。
+`server_id` 格式不对、`addresses` 和 `address` 都没填、没填 `icon` 或 `icon` 不是图标名、`color` 不是 `#RRGGBB`、以及和前面某项 `server_id` 重复。
 被忽略的项不出现在右栏，对应服的心跳得到 404。
 保存设置时每个被忽略的项会在日志（管理后台 → 日志 → 错误日志，即 `/logs`）里记一行警告，写明原因。
 
