@@ -152,7 +152,7 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 - 论坛重启后第一次查询最晚可能要等几分钟（mini_scheduler 的排期），之后每 30 秒一次。
 - 服务器图标：查询成功后，论坛再用 Server List Ping 连游戏端口（Query 结果里的 `hostport`）取 `server-icon.png`，
   存在 Redis 里不过期，服离线时也照样显示；每小时最多重取一次。服没设图标时显示 `icon` 里选的图标。
-- 代码在 `app/jobs/scheduled/gtmc_poll_servers.rb`、`app/services/discourse_gtmc/server_poller.rb` 和 `minecraft_query.rb`。
+- 代码在 `app/jobs/scheduled/gtmc_poll_servers.rb`、`app/services/discourse_gtmc/` 下的 `server_poller.rb`、`minecraft_query.rb`、`minecraft_ping.rb`、`server_favicon.rb`。
 
 ## 右栏面板和手机形态
 
