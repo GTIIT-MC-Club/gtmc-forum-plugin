@@ -17,12 +17,18 @@ module DiscourseGtmc
     # 颜色会写进前端元素的 style 属性，所以只认 #RRGGBB，不放行 CSS 的其他写法。
     COLOR_PATTERN = /\A#[0-9a-fA-F]{6}\z/
 
-    Server = Data.define(:server_id, :name, :address, :map_url, :icon, :color)
+    # 论坛去查询的地址，host:port，host 是 IPv4 或主机名。不合格只是不查询，这一项照常显示。
+    QUERY_ADDRESS_PATTERN = /\A([a-z0-9.-]{1,253}):(\d{1,5})\z/i
+
+    # query_host、query_port 不进 status.json：那是公开接口，这里通常是局域网地址。
+    Server =
+      Data.define(:server_id, :name, :address, :map_url, :icon, :color, :query_host, :query_port)
 
     # 按设置里的顺序返回。
     def self.servers
       accepted_entries, _ignored_entries = partition_entries
       accepted_entries.map do |entry|
+        query_host, query_port = parse_query_address(entry["query_address"])
         Server.new(
           server_id: entry["server_id"],
           name: entry["name"],
@@ -31,6 +37,8 @@ module DiscourseGtmc
           icon: entry["icon"],
           # 统一成小写，前端和测试只需面对一种写法
           color: entry["color"].presence&.downcase,
+          query_host: query_host,
+          query_port: query_port,
         )
       end
     end
@@ -40,14 +48,31 @@ module DiscourseGtmc
     end
 
     def self.log_ignored_entries
-      _accepted_entries, ignored_entries = partition_entries
+      accepted_entries, ignored_entries = partition_entries
       ignored_entries.each do |entry, reason|
         Rails.logger.warn(
           "[discourse-gtmc] Ignoring gtmc_servers entry with server_id #{entry["server_id"].inspect}: " \
             "#{reason}. Heartbeats for it will get 404 until the setting is fixed.",
         )
       end
+      accepted_entries.each do |entry|
+        next if entry["query_address"].blank? || parse_query_address(entry["query_address"])
+        Rails.logger.warn(
+          "[discourse-gtmc] Not querying server_id #{entry["server_id"].inspect}: " \
+            "query_address #{entry["query_address"].inspect} must look like host:port.",
+        )
+      end
     end
+
+    # 返回 [host, port]；没填或不合格返回 nil
+    def self.parse_query_address(query_address)
+      return if !query_address.is_a?(String)
+      match = QUERY_ADDRESS_PATTERN.match(query_address.strip)
+      return if match.nil?
+      port = match[2].to_i
+      [match[1], port] if port.between?(1, 65_535)
+    end
+    private_class_method :parse_query_address
 
     # 返回 [认的项, [[忽略的项, 原因], ...]]，两者都保持设置里的顺序。
     def self.partition_entries

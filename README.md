@@ -116,6 +116,7 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 | `map_url` | 否 | 实时地图的网址。留空则不显示地图入口；不以 `http://` 或 `https://` 开头的也不显示 |
 | `icon` | 是 | 服务器图标。后台里是图标选择器（Discourse 的 `type: icon`），搜索 `gtmc` 能选到主题提供的像素图标（`gtmc-bricks`、`gtmc-hammer`、`gtmc-cake`、`gtmc-gear`、`gtmc-chest` 等，见 gtmc-discourse-forum 的 `design/brand/icons-8x8/`），也能选 Font Awesome 图标。选中的图标会自动进入站点的图标精灵，不用另外登记 |
 | `color` | 否 | 图标颜色，`#RRGGBB`，如 `#5DBB47`。留空用主题强调色 |
+| `query_address` | 否 | 论坛去查询的地址，`host:port`，如 `10.0.0.5:25581`。填了就不用装心跳插件，见下文「不装插件：论坛查询」。不对外显示 |
 
 列表的顺序只决定离线的服、以及人数相同的服的先后：在线的服按人数从多到少排在前面。
 
@@ -129,6 +130,21 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 
 新加一个服的顺序：先在这里登记，再在那个服的插件配置里填同样的 `server_id`。顺序反过来也行，
 只是登记之前那个服的心跳都会得到 404。
+
+## 不装插件：论坛查询
+
+填了 `query_address` 的服，论坛每 30 秒用 Minecraft 的 Query 协议（UDP）查一次，拿版本、人数和完整的在线名单，
+结果和心跳存在同一处，`status.json` 看不出区别，只是 `tps` 是 `null`（Query 协议不带 TPS）。
+
+1. 服务器的 `server.properties` 里设 `enable-query=true`，`query.port` 设一个空闲端口。它默认是 25565，不跟着 `server-port` 走，同一台机器上的几个服要各设各的。
+2. 让论坛的机器能连到这个 UDP 端口：防火墙放行；服跑在 Docker 里的话要把端口映射出来。
+3. 在 `gtmc_servers` 里给这个服填上 `query_address`。
+
+注意：
+- 填了 `query_address` 就别再给同一个 `server_id` 发心跳，两边会互相覆盖。
+- 查不到不记日志（服停着时每 30 秒一行），过了 `gtmc_heartbeat_timeout_seconds` 显示离线。`query_address` 格式不对时，保存设置时记一行警告，这个服照常显示，只是不查询。
+- 论坛重启后第一次查询最晚可能要等几分钟（mini_scheduler 的排期），之后每 30 秒一次。
+- 代码在 `app/jobs/scheduled/gtmc_poll_servers.rb`、`app/services/discourse_gtmc/server_poller.rb` 和 `minecraft_query.rb`。
 
 ## 右栏面板和手机形态
 
@@ -175,7 +191,7 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 |---|---|---|
 | `gtmc_enabled` | 开 | 关掉后插件的接口返回 404；但只勾了 `gtmc:server` 的 Key 会拿到 403，因为插件关闭时 Discourse 连同它的作用域一起停用 |
 | `gtmc_heartbeat_timeout_seconds` | 90 | 某个服多久没收到心跳就算离线；MC 插件每 30 秒报一次，90 秒即连丢三次 |
-| `gtmc_servers` | 空 | 接入论坛的 MC 服，见上文「登记 MC 服」 |
+| `gtmc_servers` | 空 | 接入论坛的 MC 服，见上文「登记 MC 服」；填了 `query_address` 的由论坛定时查询 |
 | `gtmc_rail_visible_servers` | 3 | 右栏「服务器」面板默认显示几个服，其余折叠在「+N」后面（1–20） |
 | `gtmc_announcement_category` | 空 | 右栏「公告」面板读哪个版块；为空不显示。由 gtmc-discourse-forum 的 `infra/discourse/sidebar.rb` 写入 |
 

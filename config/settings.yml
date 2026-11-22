@@ -49,6 +49,11 @@ discourse_gtmc:
           type: string
           validations:
             max_length: 7
+        # 填了的话论坛每 30 秒用 Query 协议查这个地址，这个服就不用装心跳插件。格式由 ServerRegistry 检查。
+        query_address:
+          type: string
+          validations:
+            max_length: 260
   gtmc_rail_visible_servers:
     # 右栏「服务器」面板默认展开的服数量，其余折叠。社团现在有 4 个服，默认折叠最后 1 个，
     # 免得服务器面板把下面的「新人进服」挤出第一屏。前端要读，所以 client: true。
