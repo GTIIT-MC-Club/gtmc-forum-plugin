@@ -12,7 +12,8 @@ module DiscourseGtmc
     class Error < StandardError
     end
 
-    Result = Data.define(:version, :players_online, :players_max, :player_names)
+    # host_port 是服务器的游戏端口（server-port），可能和 query.port 不同；拿不到时为 nil
+    Result = Data.define(:version, :players_online, :players_max, :player_names, :host_port)
 
     MAGIC = "\xFE\xFD".b
     TYPE_HANDSHAKE = 9
@@ -68,10 +69,17 @@ module DiscourseGtmc
         players_online: Integer(fields["numplayers"], 10),
         players_max: Integer(fields["maxplayers"], 10),
         player_names: player_names,
+        host_port: port_or_nil(fields["hostport"]),
       )
     rescue ArgumentError, TypeError
       raise Error, "bad player counts"
     end
+
+    def self.port_or_nil(value)
+      port = Integer(value.to_s, 10, exception: false)
+      port if port&.between?(1, 65_535)
+    end
+    private_class_method :port_or_nil
 
     def self.check_header(data, type, session_id)
       if data.bytesize < 5 || data.getbyte(0) != type ||

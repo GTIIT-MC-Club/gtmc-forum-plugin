@@ -31,6 +31,7 @@ export function onlineServer(
     addresses: [{ label: null, address: `${serverId}.gtmc.test` }],
     map_url: `https://map.gtmc.test/${serverId}`,
     icon: "gtmc-bricks",
+    favicon_url: null,
     color: "#5dbb47",
     online: true,
     version: "1.21.4",
@@ -50,6 +51,7 @@ export function offlineServer(serverId, name) {
     addresses: [{ label: null, address: `${serverId}.gtmc.test` }],
     map_url: null,
     icon: "gtmc-gear",
+    favicon_url: null,
     color: null,
     ...OFFLINE_FIELDS,
   };

@@ -177,7 +177,17 @@ export default class GtmcServerRow extends Component {
       style={{this.colorStyle}}
     >
       <span class="gtmc-server-row__icon">
-        {{dIcon this.server.icon}}
+        {{#if this.server.favicon_url}}
+          <img
+            alt=""
+            class="gtmc-server-row__favicon"
+            height="32"
+            src={{this.server.favicon_url}}
+            width="32"
+          />
+        {{else}}
+          {{dIcon this.server.icon}}
+        {{/if}}
         <i
           class="gtmc-server-row__state"
           data-tooltip={{this.stateLabel}}

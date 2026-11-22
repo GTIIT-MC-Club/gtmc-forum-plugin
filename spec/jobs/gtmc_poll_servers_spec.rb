@@ -19,8 +19,10 @@ RSpec.describe Jobs::GtmcPollServers do
       players_online: 2,
       players_max: 20,
       player_names: %w[Steve Alex],
+      host_port: 25_580,
     )
   end
+  let(:png) { "\x89PNG\r\n\x1A\n".b + "pixels".b }
 
   def status_by_server_id
     DiscourseGtmc::ServerStatus.current(include_players: true)[:servers].index_by do |server|
@@ -29,6 +31,8 @@ RSpec.describe Jobs::GtmcPollServers do
   end
 
   before do
+    # 默认没有图标；要测图标的用例自己再 stub
+    DiscourseGtmc::MinecraftPing.stubs(:fetch_favicon).returns(nil)
     SiteSetting.gtmc_enabled = true
     SiteSetting.gtmc_servers = [polled_server, heartbeat_server].to_json
   end
@@ -100,5 +104,60 @@ RSpec.describe Jobs::GtmcPollServers do
     expect(DiscourseGtmc::ServerStatus.current(include_players: false).to_json).not_to include(
       "10.0.0.5",
     )
+  end
+
+  describe "server icons" do
+    before { DiscourseGtmc::MinecraftQuery.stubs(:fetch).returns(query_result) }
+
+    it "fetches the icon from the game port and keeps it" do
+      DiscourseGtmc::MinecraftPing
+        .expects(:fetch_favicon)
+        .with("10.0.0.5", 25_580)
+        .returns(png)
+        .once
+
+      described_class.new.execute({})
+      described_class.new.execute({})
+
+      expect(DiscourseGtmc::ServerFavicon.png("creative")).to eq(png)
+      expect(status_by_server_id["creative"][:favicon_url]).to match(
+        %r{\A/gtmc/servers/creative/icon\.png\?v=[0-9a-f]{12}\z},
+      )
+    end
+
+    it "fetches it again after an hour" do
+      DiscourseGtmc::MinecraftPing.expects(:fetch_favicon).returns(png).twice
+
+      described_class.new.execute({})
+      freeze_time(61.minutes.from_now) { described_class.new.execute({}) }
+    end
+
+    it "keeps showing the icon while the server is offline" do
+      DiscourseGtmc::MinecraftPing.stubs(:fetch_favicon).returns(png)
+      described_class.new.execute({})
+
+      freeze_time(10.minutes.from_now) do
+        creative = status_by_server_id["creative"]
+        expect(creative[:online]).to eq(false)
+        expect(creative[:favicon_url]).to be_present
+      end
+    end
+
+    it "keeps the old icon when fetching a new one fails" do
+      DiscourseGtmc::MinecraftPing.stubs(:fetch_favicon).returns(png)
+      described_class.new.execute({})
+      DiscourseGtmc::MinecraftPing.stubs(:fetch_favicon).raises(DiscourseGtmc::MinecraftPing::Error)
+
+      freeze_time(61.minutes.from_now) { described_class.new.execute({}) }
+
+      expect(DiscourseGtmc::ServerFavicon.png("creative")).to eq(png)
+    end
+
+    it "skips the icon when Query does not say which port the game is on" do
+      DiscourseGtmc::MinecraftQuery.stubs(:fetch).returns(query_result.with(host_port: nil))
+      DiscourseGtmc::MinecraftPing.expects(:fetch_favicon).never
+
+      described_class.new.execute({})
+    end
   end
 end

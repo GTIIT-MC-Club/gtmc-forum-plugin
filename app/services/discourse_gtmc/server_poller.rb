@@ -35,9 +35,23 @@ module DiscourseGtmc
         player_names: player_names,
         tps: nil,
       )
+      refresh_favicon(server, result.host_port)
     rescue MinecraftQuery::Error
       nil
     end
     private_class_method :poll
+
+    # 只在 Query 刚成功（服在线）、且缓存过期时才去取，免得给每次轮询再加一次超时。
+    # 图标走游戏端口（Query 结果里的 hostport），不是 query.port。取失败就留着旧图标。
+    def self.refresh_favicon(server, game_port)
+      return if game_port.nil? || !ServerFavicon.stale?(server.server_id)
+      ServerFavicon.store(
+        server.server_id,
+        MinecraftPing.fetch_favicon(server.query_host, game_port),
+      )
+    rescue MinecraftPing::Error
+      nil
+    end
+    private_class_method :refresh_favicon
   end
 end

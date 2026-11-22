@@ -61,6 +61,7 @@ module DiscourseGtmc
             addresses: server.addresses.map { |item| { label: item.label, address: item.address } },
             map_url: server.map_url,
             icon: server.icon,
+            favicon_url: ServerFavicon.url(server.server_id),
             color: server.color,
             **heartbeat_fields(server.server_id, include_players:),
           }

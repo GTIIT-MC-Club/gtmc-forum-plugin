@@ -366,6 +366,27 @@ module("Integration | Component | GtmcRailServers", function (hooks) {
       .hasAttribute("data-tooltip", i18n("gtmc.servers.copied"));
   });
 
+  test("shows the server's own icon when there is one", async function (assert) {
+    respondWith(
+      statusResponse([
+        {
+          ...onlineServer("survival", "生存服"),
+          favicon_url: "/gtmc/servers/survival/icon.png?v=abc123",
+        },
+        onlineServer("creative", "创造服"),
+      ])
+    );
+
+    await render(<template><GtmcRailServers /></template>);
+
+    assert
+      .dom(`${rowOf("survival")} .gtmc-server-row__favicon`)
+      .hasAttribute("src", "/gtmc/servers/survival/icon.png?v=abc123");
+    assert.dom(`${rowOf("survival")} .gtmc-server-row__icon .d-icon`).doesNotExist();
+    assert.dom(`${rowOf("creative")} .gtmc-server-row__favicon`).doesNotExist();
+    assert.dom(`${rowOf("creative")} .gtmc-server-row__icon .d-icon`).exists();
+  });
+
   test("links to the live map only when the map url is http(s)", async function (assert) {
     respondWith(
       statusResponse([

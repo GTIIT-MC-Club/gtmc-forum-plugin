@@ -230,6 +230,14 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
     }
   }
 
+  // 服务器自己的图标（server-icon.png，64×64 像素画）：缩成一半，像素保持清晰
+  &__favicon {
+    width: 32px;
+    height: 32px;
+    border-radius: 2px;
+    image-rendering: pixelated;
+  }
+
   &__state {
     position: absolute;
     right: -3px;
@@ -247,6 +255,11 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
     .d-icon {
       opacity: 0.6;
     }
+  }
+
+  &--offline &__favicon {
+    filter: grayscale(1);
+    opacity: 0.6;
   }
 
   &--offline &__state {

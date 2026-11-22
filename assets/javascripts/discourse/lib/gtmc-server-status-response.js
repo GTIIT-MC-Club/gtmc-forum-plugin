@@ -4,6 +4,8 @@
 const HTTP_URL_PATTERN = /^https?:\/\//i;
 // 与后端 ServerRegistry 的 COLOR_PATTERN 一致：颜色会写进 style 属性，这里再确认一遍
 const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+// 图标只从本站的接口取，不放行别的地址
+const FAVICON_URL_PATTERN = /^\/gtmc\/servers\/[a-z0-9-]+\/icon\.png\?v=[0-9a-f]+$/;
 
 function isNullOr(value, predicate) {
   return value === null || predicate(value);
@@ -32,6 +34,7 @@ function isUsableServer(server) {
     server.addresses.length === 0 ||
     !server.addresses.every(isUsableAddress) ||
     typeof server.icon !== "string" ||
+    !isNullOr(server.favicon_url, (url) => FAVICON_URL_PATTERN.test(url)) ||
     !isNullOr(server.color, (color) => COLOR_PATTERN.test(color)) ||
     !isNullOr(server.map_url, (mapUrl) => typeof mapUrl === "string") ||
     typeof server.online !== "boolean"

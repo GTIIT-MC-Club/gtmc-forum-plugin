@@ -52,6 +52,7 @@ RSpec.describe DiscourseGtmc::MinecraftQuery do
           players_online: 2,
           players_max: 20,
           player_names: %w[Steve Alex],
+          host_port: 25_565,
         ),
       )
     end

@@ -4,7 +4,18 @@
 DiscourseGtmc::Engine.routes.draw do
   get "/status" => "status#show"
   get "/newcomer_guide" => "newcomer_guides#show"
-  put "/servers/:server_id/heartbeat" => "heartbeats#update", :constraints => { server_id: /[a-z0-9-]{1,32}/ }
+  put "/servers/:server_id/heartbeat" => "heartbeats#update",
+      :constraints => {
+        server_id: /[a-z0-9-]{1,32}/,
+      }
+  get "/servers/:server_id/icon" => "icons#show",
+      :constraints => {
+        server_id: /[a-z0-9-]{1,32}/,
+        format: "png",
+      },
+      :defaults => {
+        format: "png",
+      }
 end
 
 Discourse::Application.routes.draw { mount DiscourseGtmc::Engine, at: "/gtmc" }

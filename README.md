@@ -10,6 +10,7 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛。
 | 接口 | 谁能调 | 说明 |
 |---|---|---|
 | `GET /gtmc/status.json` | 任何人 | 各服的状态，右栏和手机状态条用 |
+| `GET /gtmc/servers/:server_id/icon.png` | 任何人 | 服务器自己的图标（`server-icon.png`），`status.json` 的 `favicon_url` 指向它 |
 | `GET /gtmc/newcomer_guide.json` | 任何人 | 新人指南帖的地址，和当前用户读过没有 |
 | `PUT /gtmc/servers/:server_id/heartbeat.json` | MC 服务器（API Key） | 上报心跳 |
 
@@ -87,6 +88,7 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
       "addresses": [{ "label": "外网", "address": "survival.example.com" }],
       "map_url": "https://map.example.com/survival",
       "icon": "gtmc-bricks",
+      "favicon_url": "/gtmc/servers/survival/icon.png?v=2eabb7ecf3de",
       "color": "#5DBB47",
       "online": true,
       "version": "1.21.4-232-ver/1.21.4",
@@ -148,6 +150,8 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 - 填了 `query_address` 就别再给同一个 `server_id` 发心跳，两边会互相覆盖。
 - 查不到不记日志（服停着时每 30 秒一行），过了 `gtmc_heartbeat_timeout_seconds` 显示离线。`query_address` 格式不对时，保存设置时记一行警告，这个服照常显示，只是不查询。
 - 论坛重启后第一次查询最晚可能要等几分钟（mini_scheduler 的排期），之后每 30 秒一次。
+- 服务器图标：查询成功后，论坛再用 Server List Ping 连游戏端口（Query 结果里的 `hostport`）取 `server-icon.png`，
+  存在 Redis 里不过期，服离线时也照样显示；每小时最多重取一次。服没设图标时显示 `icon` 里选的图标。
 - 代码在 `app/jobs/scheduled/gtmc_poll_servers.rb`、`app/services/discourse_gtmc/server_poller.rb` 和 `minecraft_query.rb`。
 
 ## 右栏面板和手机形态
