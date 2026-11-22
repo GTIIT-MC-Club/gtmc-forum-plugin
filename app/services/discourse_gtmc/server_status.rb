@@ -103,9 +103,18 @@ module DiscourseGtmc
     # 用 User.system_avatar_template 而不是自己画：它遵循站点的头像设置，返回的模板里留着 {size}，
     # 前端按显示尺寸替换。不用 default_template：它会优先返回管理员配置的默认头像，
     # 那样所有玩家就是同一张图。
+    #
+    # skin_avatar_template 是皮肤站上这个角色的脸（gtmc_player_avatar_url），同样留着 {size}。
+    # 没在皮肤站建角色的会 404，前端那时退回 avatar_template；设置为空或不是 http(s) 时为 nil。
     def self.players_for(player_names)
+      skin_template = SiteSetting.gtmc_player_avatar_url.strip
+      skin_template = nil if !skin_template.match?(%r{\Ahttps?://}i)
       player_names.map do |mc_name|
-        { mc_name: mc_name, avatar_template: User.system_avatar_template(mc_name) }
+        {
+          mc_name: mc_name,
+          avatar_template: User.system_avatar_template(mc_name),
+          skin_avatar_template: skin_template&.gsub("{name}", ERB::Util.url_encode(mc_name)),
+        }
       end
     end
     private_class_method :players_for

@@ -29,6 +29,8 @@ const AVATAR_SIZE_PX = 24;
  */
 export default class GtmcServerRow extends Component {
   @tracked isAddressCopied = false;
+  // 皮肤站上取不到脸（没建角色，404）的游戏名，改用字母头像
+  @tracked skinlessNames = [];
 
   copiedFeedbackTimer = null;
   addressMenu = null;
@@ -68,10 +70,19 @@ export default class GtmcServerRow extends Component {
   get visiblePlayers() {
     return (this.server.players ?? [])
       .slice(0, MAX_VISIBLE_AVATARS)
-      .map((player) => ({
-        mcName: player.mc_name,
-        avatarUrl: avatarUrl(player.avatar_template, AVATAR_SIZE_PX),
-      }));
+      .map((player) => {
+        const useSkin =
+          player.skin_avatar_template &&
+          !this.skinlessNames.includes(player.mc_name);
+        return {
+          mcName: player.mc_name,
+          isSkin: Boolean(useSkin),
+          avatarUrl: avatarUrl(
+            useSkin ? player.skin_avatar_template : player.avatar_template,
+            AVATAR_SIZE_PX
+          ),
+        };
+      });
   }
 
   get hiddenPlayersCount() {
@@ -138,6 +149,13 @@ export default class GtmcServerRow extends Component {
       name: this.server.name,
       address: this.addressesText,
     });
+  }
+
+  @action
+  useLetterAvatar(mcName) {
+    if (!this.skinlessNames.includes(mcName)) {
+      this.skinlessNames = [...this.skinlessNames, mcName];
+    }
   }
 
   @action
@@ -212,13 +230,25 @@ export default class GtmcServerRow extends Component {
       <div class="gtmc-server-row__faces">
         {{#each this.visiblePlayers key="mcName" as |player|}}
           <span class="gtmc-server-row__face" data-tooltip={{player.mcName}}>
-            <img
-              alt={{player.mcName}}
-              height={{AVATAR_SIZE_PX}}
-              loading="lazy"
-              src={{player.avatarUrl}}
-              width={{AVATAR_SIZE_PX}}
-            />
+            {{#if player.isSkin}}
+              <img
+                alt={{player.mcName}}
+                class="gtmc-server-row__skin"
+                height={{AVATAR_SIZE_PX}}
+                loading="lazy"
+                src={{player.avatarUrl}}
+                width={{AVATAR_SIZE_PX}}
+                {{on "error" (fn this.useLetterAvatar player.mcName)}}
+              />
+            {{else}}
+              <img
+                alt={{player.mcName}}
+                height={{AVATAR_SIZE_PX}}
+                loading="lazy"
+                src={{player.avatarUrl}}
+                width={{AVATAR_SIZE_PX}}
+              />
+            {{/if}}
           </span>
         {{/each}}
         {{#if this.hiddenPlayersCount}}

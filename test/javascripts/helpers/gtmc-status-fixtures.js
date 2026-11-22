@@ -14,6 +14,7 @@ export function player(mcName) {
   return {
     mc_name: mcName,
     avatar_template: `/letter_avatar_proxy/v4/letter/${mcName[0].toLowerCase()}/aabbcc/{size}.png`,
+    skin_avatar_template: null,
   };
 }
 

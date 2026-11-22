@@ -257,6 +257,11 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
     }
   }
 
+  // 皮肤的脸是 8×8 像素画，放大时保持清晰
+  &__skin {
+    image-rendering: pixelated;
+  }
+
   &--offline &__favicon {
     filter: grayscale(1);
     opacity: 0.6;

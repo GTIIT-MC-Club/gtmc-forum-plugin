@@ -92,6 +92,13 @@ discourse_gtmc:
     min: 1
     max: 20
     client: true
+  gtmc_player_avatar_url:
+    # 右栏在线玩家的头像（皮肤的脸）从哪取。{name} 换成游戏名，{size} 换成像素尺寸。
+    # 取不到（没在皮肤站建角色）时前端回退成字母头像；留空则一律用字母头像。
+    # 前端不直接读：后端把 {name} 换好后放进 status.json，所以不设 client: true。
+    default: "https://skin.gtmc.top/avatar/player/{name}?size={size}"
+    validations:
+      max_length: 500
   gtmc_announcement_category:
     # 右栏「公告」面板读哪个版块。由 infra/discourse/sidebar.rb 按名字「公告」找到版块后写入；
     # 为空时面板不出现。前端要读，所以 client: true。

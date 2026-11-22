@@ -322,6 +322,33 @@ RSpec.describe DiscourseGtmc::StatusController do
       expect(players.first["avatar_template"]).to include("{size}")
     end
 
+    it "points each player at their face on the skin site" do
+      sign_in(user)
+
+      players = statuses_by_server_id["survival"]["players"]
+
+      expect(players.first["skin_avatar_template"]).to eq(
+        "https://skin.gtmc.top/avatar/player/Steve?size={size}",
+      )
+    end
+
+    it "escapes odd player names in the skin url" do
+      SiteSetting.gtmc_player_avatar_url = "https://skin.gtmc.test/avatar/{name}/{size}"
+      post_heartbeat(server_id: "creative", player_names: ["a b&c"], players_online: 1)
+      sign_in(user)
+
+      expect(statuses_by_server_id["creative"]["players"].first["skin_avatar_template"]).to eq(
+        "https://skin.gtmc.test/avatar/a%20b%26c/{size}",
+      )
+    end
+
+    it "leaves out the skin url when the setting is empty" do
+      SiteSetting.gtmc_player_avatar_url = ""
+      sign_in(user)
+
+      expect(statuses_by_server_id["survival"]["players"].first["skin_avatar_template"]).to be_nil
+    end
+
     it "returns an empty list for a logged-in user when nobody is online" do
       sign_in(user)
 

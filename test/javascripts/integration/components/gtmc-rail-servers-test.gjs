@@ -153,6 +153,38 @@ module("Integration | Component | GtmcRailServers", function (hooks) {
         .hasAttribute("data-tooltip", `Fay${i18n("gtmc.servers.player_separator")}Gus`);
     });
 
+    test("shows the skin's face and falls back to the letter avatar when the skin site has none", async function (assert) {
+      const server = onlineServer("survival", "生存服", {
+        playerNames: ["Steve", "Alex"],
+      });
+      // 同源的真实图片：测试里不能真去外站取，取不到会自己触发回退，结果就不稳定了
+      server.players = server.players.map((p) => ({
+        ...p,
+        skin_avatar_template: `${window.location.origin}/images/avatar.png?player=${p.mc_name}&size={size}`,
+      }));
+      respondWith(statusResponse([server]));
+
+      await render(<template><GtmcRailServers /></template>);
+
+      const faces = `${rowOf("survival")} .gtmc-server-row__face img`;
+      assert.dom(`${faces}.gtmc-server-row__skin`).exists({ count: 2 });
+      assert
+        .dom(`${faces}[alt="Steve"]`)
+        .hasAttribute("src", /\/images\/avatar\.png\?player=Steve&size=\d+$/);
+
+      // 图片加载失败的 error 事件不冒泡；triggerEvent 会冒泡到 window，被当成全局错误
+      document
+        .querySelector(`${faces}[alt="Steve"]`)
+        .dispatchEvent(new Event("error"));
+      await settled();
+
+      assert.dom(`${faces}[alt="Steve"]`).doesNotHaveClass("gtmc-server-row__skin");
+      assert
+        .dom(`${faces}[alt="Steve"]`)
+        .hasAttribute("src", /letter_avatar_proxy/);
+      assert.dom(`${faces}[alt="Alex"]`).hasClass("gtmc-server-row__skin");
+    });
+
     test("shows no +N when five players or fewer are online", async function (assert) {
       respondWith(
         statusResponse([

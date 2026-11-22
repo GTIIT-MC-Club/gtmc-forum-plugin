@@ -14,7 +14,11 @@ function isNullOr(value, predicate) {
 function isUsablePlayer(player) {
   return (
     typeof player?.mc_name === "string" &&
-    typeof player.avatar_template === "string"
+    typeof player.avatar_template === "string" &&
+    // 皮肤站的头像是外站地址，只放行 http(s)；旧后端没有这个字段
+    (player.skin_avatar_template == null ||
+      (typeof player.skin_avatar_template === "string" &&
+        HTTP_URL_PATTERN.test(player.skin_avatar_template)))
   );
 }
 

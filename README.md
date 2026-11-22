@@ -94,7 +94,11 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
       "version": "1.21.4-232-ver/1.21.4",
       "players_online": 2,
       "players_max": 20,
-      "players": [{ "mc_name": "Steve", "avatar_template": "/letter_avatar_proxy/v4/letter/s/..../{size}.png" }],
+      "players": [{
+        "mc_name": "Steve",
+        "avatar_template": "/letter_avatar_proxy/v4/letter/s/..../{size}.png",
+        "skin_avatar_template": "https://skin.gtmc.top/avatar/player/Steve?size={size}"
+      }],
       "tps": 19.98,
       "updated_at": "2026-11-19T10:00:00.000Z"
     }
@@ -203,6 +207,7 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 | `gtmc_heartbeat_timeout_seconds` | 90 | 某个服多久没收到心跳就算离线；MC 插件每 30 秒报一次，90 秒即连丢三次 |
 | `gtmc_servers` | 空 | 接入论坛的 MC 服，见上文「登记 MC 服」；填了 `query_address` 的由论坛定时查询 |
 | `gtmc_rail_visible_servers` | 3 | 右栏「服务器」面板默认显示几个服，其余折叠在「+N」后面（1–20） |
+| `gtmc_player_avatar_url` | `https://skin.gtmc.top/avatar/player/{name}?size={size}` | 右栏在线玩家的头像：皮肤站上角色的脸。没在皮肤站建角色的（404）显示字母头像；留空则一律字母头像 |
 | `gtmc_announcement_category` | 空 | 右栏「公告」面板读哪个版块；为空不显示。由 gtmc-discourse-forum 的 `infra/discourse/sidebar.rb` 写入 |
 
 ## 测试
