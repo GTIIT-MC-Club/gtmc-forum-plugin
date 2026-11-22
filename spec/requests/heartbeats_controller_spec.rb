@@ -42,7 +42,12 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
   before do
     SiteSetting.gtmc_enabled = true
     SiteSetting.gtmc_servers = [
-      { server_id: "survival", name: "生存服", address: "survival.gtmc.test", icon: "gtmc-bricks" },
+      {
+        server_id: "survival",
+        name: "生存服",
+        addresses: [{ address: "survival.gtmc.test" }],
+        icon: "gtmc-bricks",
+      },
     ].to_json
   end
 
@@ -77,8 +82,18 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
       expect(response.status).to eq(404)
       # 登记之后才能从 status.json 看到 creative；若刚才的心跳被存下了，这里会显示在线
       SiteSetting.gtmc_servers = [
-        { server_id: "survival", name: "生存服", address: "survival.gtmc.test", icon: "gtmc-bricks" },
-        { server_id: "creative", name: "创造服", address: "creative.gtmc.test", icon: "gtmc-hammer" },
+        {
+          server_id: "survival",
+          name: "生存服",
+          addresses: [{ address: "survival.gtmc.test" }],
+          icon: "gtmc-bricks",
+        },
+        {
+          server_id: "creative",
+          name: "创造服",
+          addresses: [{ address: "creative.gtmc.test" }],
+          icon: "gtmc-hammer",
+        },
       ].to_json
       expect(status_of("creative")["online"]).to eq(false)
     end
@@ -93,7 +108,12 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
 
     it "answers 404 for an entry whose server_id breaks the format" do
       SiteSetting.gtmc_servers = [
-        { server_id: "Survival", name: "生存服", address: "survival.gtmc.test", icon: "gtmc-bricks" },
+        {
+          server_id: "Survival",
+          name: "生存服",
+          addresses: [{ address: "survival.gtmc.test" }],
+          icon: "gtmc-bricks",
+        },
       ].to_json
 
       post_heartbeat(server_id: "Survival")

@@ -111,23 +111,25 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 
 ## 登记 MC 服（`gtmc_servers`）
 
-管理后台 → 设置 → 搜索 `gtmc_servers`，这是一个对象列表（Discourse 的 `type: objects` 设置），每个服点「添加」填一项：
+管理后台 → 设置 → 搜索 `gtmc_servers` → 启动编辑器。左边「+ 服务器」新建一个服；选中一个服后，它下面的「+ 地址」添加玩家连接用的地址。
+编辑器里每个字段下面都写了说明，这里是汇总：
 
-| 字段 | 必填 | 说明 |
-|---|---|---|
-| `server_id` | 是 | 1–32 个小写字母、数字或连字符，如 `survival`。必须和该服 MC 插件配置里的 `server_id` 一字不差 |
-| `name` | 是 | 右栏和手机状态条上的展示名，如「生存服」 |
-| `addresses` | 是 | 玩家连接用的地址，可以填好几个，每个有 `label`（如「内网」「外网」，可空）和 `address`（如 `survival.example.com`）。只有一个时右栏上点复制按钮直接复制，有多个时弹出菜单选。只用于展示 |
-| `address` | 否 | 只有一个地址时的旧写法，`addresses` 为空时才用 |
-| `map_url` | 否 | 实时地图的网址。留空则不显示地图入口；不以 `http://` 或 `https://` 开头的也不显示 |
-| `icon` | 是 | 服务器图标。后台里是图标选择器（Discourse 的 `type: icon`），搜索 `gtmc` 能选到主题提供的像素图标（`gtmc-bricks`、`gtmc-hammer`、`gtmc-cake`、`gtmc-gear`、`gtmc-chest` 等，见 gtmc-discourse-forum 的 `design/brand/icons-8x8/`），也能选 Font Awesome 图标。选中的图标会自动进入站点的图标精灵，不用另外登记 |
-| `color` | 否 | 图标颜色，`#RRGGBB`，如 `#5DBB47`。留空用主题强调色 |
-| `query_address` | 否 | 论坛去查询的地址，`host:port`，如 `10.0.0.5:25581`。填了就不用装心跳插件，见下文「不装插件：论坛查询」。不对外显示 |
+| 字段 | 编辑器里叫 | 必填 | 说明 |
+|---|---|---|---|
+| `name` | 名称 | 是 | 右栏上的展示名，如「生存服」 |
+| `server_id` | 编号 | 是 | 1–32 个小写字母、数字或连字符，如 `survival`。装了心跳插件的服，要和插件配置里的 `server_id` 一字不差 |
+| `icon` | 备用图标 | 是 | 服务器自己没设图标时显示。图标选择器里搜 `gtmc` 能选到主题的像素图标（`gtmc-bricks`、`gtmc-hammer` 等，见 gtmc-discourse-forum 的 `design/brand/icons-8x8/`），也能选 Font Awesome 图标 |
+| `query_address` | 查询地址 | 否 | 论坛去查询的局域网地址，`host:Query端口`，如 `10.0.0.5:25581`。填了就不用装心跳插件，见下文「不装插件：论坛查询」。不对外显示 |
+| `map_url` | 地图网址 | 否 | BlueMap、Dynmap 之类网页地图的网址。留空或不以 `http(s)://` 开头就不显示地图按钮 |
+| `color` | 颜色 | 否 | 备用图标的颜色，`#RRGGBB`。留空用主题强调色 |
+| `addresses` | 地址（树里「+ 地址」） | 至少一个 | 每个有 `label`（标签，如「外网」「内网」，可空）和 `address`（如 `survival.example.com`）。只有一个时右栏复制按钮直接复制，多个时弹出菜单选；第一个也是 `status.json` 里的 `address` |
+
+字段名和说明写在 `config/settings.yml` 的 schema 里（`label`、`description`），编辑器原样显示，不走翻译。
 
 列表的顺序只决定离线的服、以及人数相同的服的先后：在线的服按人数从多到少排在前面。
 
 设置的 schema 管不了 `server_id` 的格式和唯一性、`color` 的格式，所以插件读取时会**忽略**这些项：
-`server_id` 格式不对、`addresses` 和 `address` 都没填、没填 `icon` 或 `icon` 不是图标名、`color` 不是 `#RRGGBB`、以及和前面某项 `server_id` 重复。
+`server_id` 格式不对、一个地址都没有、没填 `icon` 或 `icon` 不是图标名、`color` 不是 `#RRGGBB`、以及和前面某项 `server_id` 重复。
 被忽略的项不出现在右栏，对应服的心跳得到 404。
 保存设置时每个被忽略的项会在日志（管理后台 → 日志 → 错误日志，即 `/logs`）里记一行警告，写明原因。
 

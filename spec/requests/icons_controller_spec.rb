@@ -6,7 +6,12 @@ RSpec.describe DiscourseGtmc::IconsController do
   before do
     SiteSetting.gtmc_enabled = true
     SiteSetting.gtmc_servers = [
-      { server_id: "survival", name: "生存服", address: "survival.gtmc.test", icon: "gtmc-bricks" },
+      {
+        server_id: "survival",
+        name: "生存服",
+        addresses: [{ address: "survival.gtmc.test" }],
+        icon: "gtmc-bricks",
+      },
     ].to_json
   end
 

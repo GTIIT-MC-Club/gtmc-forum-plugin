@@ -2,6 +2,6 @@ zh_CN:
   site_settings:
     gtmc_enabled: "启用 GTMC 插件（MC 服务器状态、账号绑定）。"
     gtmc_heartbeat_timeout_seconds: "某个 MC 服超过这么多秒没发来心跳，就显示为离线。"
-    gtmc_servers: "接入论坛的 MC 服。每项的 server_id、name、icon 必填，addresses（可填多个，带内网、外网之类的标签）至少一个，color、map_url、query_address 可空；填了 query_address（局域网的 host:port）就由论坛去查询，不用装心跳插件；server_id 要和该服插件配置里的完全一致；不合格的项会被忽略，保存时在日志里记一行警告。详细说明见 README.md 的「登记 MC 服」。"
+    gtmc_servers: "接入论坛的 MC 服。点「启动编辑器」，左边「+ 服务器」新建一个服，选中服后点它下面的「+ 地址」添加玩家连接用的地址（可以有内网、外网多个）；每个字段的意思写在字段下面。不合格的项会被忽略，保存时在日志里记一行警告。详细说明见 README.md 的「登记 MC 服」。"
     gtmc_rail_visible_servers: "右栏「服务器」面板默认显示几个服，其余折叠在「+N」按钮后面。"
     gtmc_announcement_category: "右栏「公告」面板显示哪个版块的最新话题。留空则不显示这个面板。"

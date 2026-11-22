@@ -16,60 +16,74 @@ discourse_gtmc:
   gtmc_servers:
     type: objects
     default: []
+    # label、description 是后台编辑器里显示的字段名和说明，编辑器原样显示，不走翻译。顺序就是编辑器里的顺序。
+    # name 是左边树里「+ 服务器」「+ 地址」按钮上的字。
     schema:
-      name: server
+      name: 服务器
       identifier: name
       properties:
-        server_id:
-          type: string
-          required: true
-          validations:
-            max_length: 32
         name:
           type: string
           required: true
+          label: 名称
+          description: 右栏上显示的名字，如「生存服」。
           validations:
             max_length: 50
-        # 玩家连接用的地址，可以有好几个（内网、外网），右栏上点复制按钮时选。
-        # address 是只有一个地址时的旧写法，addresses 为空时才用它。
-        addresses:
-          type: objects
-          schema:
-            name: address
-            identifier: label
-            properties:
-              label:
-                type: string
-                validations:
-                  max_length: 20
-              address:
-                type: string
-                required: true
-                validations:
-                  max_length: 200
-        address:
+        server_id:
           type: string
+          required: true
+          label: 编号
+          description: 1–32 个小写字母、数字或连字符，如 survival，各服不能重复。装了心跳插件的服，要和插件配置里的 server_id 一致。
           validations:
-            max_length: 200
-        map_url:
-          type: string
-          validations:
-            max_length: 500
+            max_length: 32
         # type: icon 在后台是图标选择器，gtmc-* 主题图标和 Font Awesome 图标都能选；
         # 选中的图标会自动进入站点的图标精灵，前端才画得出来。
         icon:
           type: icon
           required: true
+          label: 备用图标
+          description: 服务器自己没设图标（server-icon.png）时显示这个。设了的话论坛会自动取来显示。
+        # 格式由 ServerRegistry 检查。
+        query_address:
+          type: string
+          label: 查询地址
+          description: 论坛查询这个服用的 IP:Query端口（局域网地址），如 192.168.2.103:25565。服务器要开 enable-query。留空就不查询，只能靠心跳插件上报。不对外显示。
+          validations:
+            max_length: 260
+        map_url:
+          type: string
+          label: 地图网址
+          description: 网页地图（BlueMap、Dynmap、squaremap 等）的网址，填了右栏会多一个地图按钮。没有就留空。
+          validations:
+            max_length: 500
         # schema 没有颜色类型，格式（#RRGGBB）由 ServerRegistry 在读取时检查。
         color:
           type: string
+          label: 颜色
+          description: 备用图标的颜色，#RRGGBB，如 #5DBB47。留空用主题色。
           validations:
             max_length: 7
-        # 填了的话论坛每 30 秒用 Query 协议查这个地址，这个服就不用装心跳插件。格式由 ServerRegistry 检查。
-        query_address:
-          type: string
-          validations:
-            max_length: 260
+        # 玩家连接用的地址，在左边树里这个服下面点「+ 地址」添加，至少一个（ServerRegistry 检查）。
+        # 只有一个时右栏的复制按钮直接复制，多个时弹出菜单选。
+        addresses:
+          type: objects
+          schema:
+            name: 地址
+            identifier: label
+            properties:
+              label:
+                type: string
+                label: 标签
+                description: 如「外网」「内网」。只有一个地址时可以不填。
+                validations:
+                  max_length: 20
+              address:
+                type: string
+                required: true
+                label: 地址
+                description: 玩家连接用的地址，如 frp-xxx.com:12345 或 10.202.28.100:25565。排第一的是主地址。
+                validations:
+                  max_length: 200
   gtmc_rail_visible_servers:
     # 右栏「服务器」面板默认展开的服数量，其余折叠。社团现在有 4 个服，默认折叠最后 1 个，
     # 免得服务器面板把下面的「新人进服」挤出第一屏。前端要读，所以 client: true。

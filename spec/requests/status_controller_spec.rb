@@ -5,7 +5,7 @@ RSpec.describe DiscourseGtmc::StatusController do
     {
       server_id: "survival",
       name: "生存服",
-      address: "survival.gtmc.test",
+      addresses: [{ address: "survival.gtmc.test" }],
       map_url: "https://map.gtmc.test/survival",
       icon: "gtmc-bricks",
       color: "#5DBB47",
@@ -15,14 +15,19 @@ RSpec.describe DiscourseGtmc::StatusController do
     {
       server_id: "creative",
       name: "创造服",
-      address: "creative.gtmc.test",
+      addresses: [{ address: "creative.gtmc.test" }],
       map_url: "",
       icon: "gtmc-hammer",
       color: "",
     }
   end
   let(:modded_server) do
-    { server_id: "modded", name: "模组服", address: "modded.gtmc.test", icon: "gtmc-gear" }
+    {
+      server_id: "modded",
+      name: "模组服",
+      addresses: [{ address: "modded.gtmc.test" }],
+      icon: "gtmc-gear",
+    }
   end
 
   let(:offline_fields) do
@@ -140,7 +145,6 @@ RSpec.describe DiscourseGtmc::StatusController do
   it "lists every address with its label and uses the first one as address" do
     register_servers(
       survival_server.merge(
-        address: "",
         addresses: [
           { label: "内网", address: "10.0.0.5:25565" },
           { label: "", address: "play.gtmc.test:12345" },
@@ -160,10 +164,7 @@ RSpec.describe DiscourseGtmc::StatusController do
   end
 
   it "ignores a server that has no address at all" do
-    store_servers_bypassing_schema(
-      survival_server.merge(address: "", addresses: []),
-      creative_server,
-    )
+    store_servers_bypassing_schema(survival_server.merge(addresses: []), creative_server)
 
     expect(statuses_by_server_id.keys).to eq(["creative"])
   end

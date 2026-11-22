@@ -5,13 +5,18 @@ RSpec.describe Jobs::GtmcPollServers do
     {
       server_id: "creative",
       name: "创造服",
-      address: "creative.gtmc.test",
+      addresses: [{ address: "creative.gtmc.test" }],
       icon: "gtmc-hammer",
       query_address: "10.0.0.5:25581",
     }
   end
   let(:heartbeat_server) do
-    { server_id: "survival", name: "生存服", address: "survival.gtmc.test", icon: "gtmc-bricks" }
+    {
+      server_id: "survival",
+      name: "生存服",
+      addresses: [{ address: "survival.gtmc.test" }],
+      icon: "gtmc-bricks",
+    }
   end
   let(:query_result) do
     DiscourseGtmc::MinecraftQuery::Result.new(

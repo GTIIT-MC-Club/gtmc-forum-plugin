@@ -80,20 +80,12 @@ module DiscourseGtmc
       end
     end
 
-    # addresses 里地址为空的项跳过；addresses 一项都没有时退回旧的 address
+    # addresses 里地址为空的项跳过
     def self.addresses_of(entry)
-      listed =
-        Array(entry["addresses"]).filter_map do |item|
-          next if !item.is_a?(Hash) || !item["address"].is_a?(String) || item["address"].blank?
-          label = item["label"].is_a?(String) ? item["label"].strip.presence : nil
-          Address.new(label: label, address: item["address"].strip)
-        end
-      return listed if listed.any?
-      address = entry["address"]
-      if address.is_a?(String) && address.present?
-        [Address.new(label: nil, address: address.strip)]
-      else
-        []
+      Array(entry["addresses"]).filter_map do |item|
+        next if !item.is_a?(Hash) || !item["address"].is_a?(String) || item["address"].blank?
+        label = item["label"].is_a?(String) ? item["label"].strip.presence : nil
+        Address.new(label: label, address: item["address"].strip)
       end
     end
     private_class_method :addresses_of
@@ -131,7 +123,7 @@ module DiscourseGtmc
       if !server_id.is_a?(String) || !SERVER_ID_PATTERN.match?(server_id)
         "server_id must match #{SERVER_ID_PATTERN.inspect}"
       elsif addresses_of(entry).empty?
-        "addresses (or address) must have at least one address"
+        "addresses must have at least one address"
       elsif !icon.is_a?(String) || !ICON_PATTERN.match?(icon)
         "icon must be set and match #{ICON_PATTERN.inspect}"
       elsif color.present? && (!color.is_a?(String) || !COLOR_PATTERN.match?(color))
