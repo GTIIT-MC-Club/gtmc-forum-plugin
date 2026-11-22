@@ -550,6 +550,16 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
   overflow-x: auto;
   scrollbar-width: none;
 
+  // 手机上横着滑；右边缘渐隐，提示后面还有服
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+
+  // 用鼠标的窄窗口（桌面浏览器缩小）没法横着滑，滚动条也藏起来了，所以换行把服都摆出来
+  @media (hover: hover) and (pointer: fine) {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    mask-image: none;
+  }
+
   &__chip {
     display: flex;
     flex: none;
