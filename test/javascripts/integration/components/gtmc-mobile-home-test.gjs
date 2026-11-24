@@ -14,14 +14,20 @@ import {
   stubVisibilityState,
 } from "../../helpers/gtmc-status-fixtures.js";
 
-const GUIDE_URL = "/t/xin-ren-zhi-nan/12";
+const CHARACTER_URL = "https://skin.gtmc.test/user/player";
+const JOIN_GUIDE_URL = "https://wiki.gtmc.test/server/joining";
 
 function respondWithStatus(body, status = 200) {
   pretender.get("/gtmc/status.json", () => response(status, body));
 }
 
-function respondWithGuide(body) {
-  pretender.get("/gtmc/newcomer_guide.json", () => response(body));
+function respondWithProgress(body) {
+  pretender.get("/gtmc/newcomer.json", () => response(body));
+}
+
+function useNewcomerLinks(siteSettings) {
+  siteSettings.gtmc_newcomer_character_url = CHARACTER_URL;
+  siteSettings.gtmc_newcomer_join_guide_url = JOIN_GUIDE_URL;
 }
 
 module("Integration | Component | GtmcMobileStatusStrip", function (hooks) {
@@ -102,29 +108,42 @@ module("Integration | Component | GtmcMobileStatusStrip", function (hooks) {
 module("Integration | Component | GtmcMobileNewcomer", function (hooks) {
   setupRenderingTest(hooks);
 
+  hooks.beforeEach(function () {
+    useNewcomerLinks(this.siteSettings);
+  });
+
   test("shows only the next step, with progress and a link to it", async function (assert) {
-    respondWithGuide({ topic_url: GUIDE_URL, read: false });
+    respondWithProgress({
+      registered: true,
+      has_character: false,
+      joined_server: false,
+    });
 
     await render(<template><GtmcMobileNewcomer /></template>);
 
-    assert.dom(".gtmc-mobile-newcomer__title small").hasText("1 / 4");
+    assert.dom(".gtmc-mobile-newcomer__title small").hasText("1 / 3");
     assert
       .dom(".gtmc-mobile-newcomer__next span")
       .hasText(
         i18n("gtmc.newcomer.next_step", {
-          step: i18n("gtmc.newcomer.steps.read_guide"),
+          step: i18n("gtmc.newcomer.steps.create_character"),
         })
       );
     assert
       .dom(".gtmc-mobile-newcomer__next a")
-      .hasAttribute("href", GUIDE_URL);
+      .hasAttribute("href", CHARACTER_URL)
+      .hasText(i18n("gtmc.newcomer.actions.create_character"));
     assert
       .dom(".gtmc-mobile-newcomer__progress i")
-      .hasAttribute("style", "width:25%");
+      .hasAttribute("style", "width:33%");
   });
 
-  test("moves on to linking the Minecraft name once the guide is read, without a button yet", async function (assert) {
-    respondWithGuide({ topic_url: GUIDE_URL, read: true });
+  test("moves on to joining a server once a character exists", async function (assert) {
+    respondWithProgress({
+      registered: true,
+      has_character: true,
+      joined_server: false,
+    });
 
     await render(<template><GtmcMobileNewcomer /></template>);
 
@@ -132,14 +151,27 @@ module("Integration | Component | GtmcMobileNewcomer", function (hooks) {
       .dom(".gtmc-mobile-newcomer__next span")
       .hasText(
         i18n("gtmc.newcomer.next_step", {
-          step: i18n("gtmc.newcomer.steps.bind_mc_name"),
+          step: i18n("gtmc.newcomer.steps.join_server"),
         })
       );
-    assert.dom(".gtmc-mobile-newcomer__next a").doesNotExist();
-    assert.dom(".gtmc-mobile-newcomer__next button").doesNotExist();
+    assert
+      .dom(".gtmc-mobile-newcomer__next a")
+      .hasAttribute("href", JOIN_GUIDE_URL);
     assert
       .dom(".gtmc-mobile-newcomer__progress i")
-      .hasAttribute("style", "width:50%");
+      .hasAttribute("style", "width:67%");
+  });
+
+  test("disappears once every step is done", async function (assert) {
+    respondWithProgress({
+      registered: true,
+      has_character: true,
+      joined_server: true,
+    });
+
+    await render(<template><GtmcMobileNewcomer /></template>);
+
+    assert.dom(".gtmc-mobile-newcomer").doesNotExist();
   });
 
   test("is only rendered on the unfiltered home list", function (assert) {
@@ -156,14 +188,13 @@ module("Integration | Component | GtmcMobileNewcomer | guest", function (hooks) 
   setupRenderingTest(hooks, { anonymous: true });
 
   test("starts a guest at signing up", async function (assert) {
-    respondWithGuide({ topic_url: GUIDE_URL, read: false });
     const transitionTo = sinon.stub();
     this.owner.lookup("service:router").transitionTo = transitionTo;
 
     await render(<template><GtmcMobileNewcomer /></template>);
     await click(".gtmc-mobile-newcomer__next button");
 
-    assert.dom(".gtmc-mobile-newcomer__title small").hasText("0 / 4");
+    assert.dom(".gtmc-mobile-newcomer__title small").hasText("0 / 3");
     assert.true(transitionTo.calledOnceWith("signup"));
   });
 });

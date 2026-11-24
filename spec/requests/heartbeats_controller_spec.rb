@@ -58,6 +58,15 @@ RSpec.describe DiscourseGtmc::HeartbeatsController do
     expect(response.body).to be_empty
   end
 
+  it "remembers the reported players for the newcomer panel" do
+    post_heartbeat
+
+    expect(DiscourseGtmc::SeenPlayer.pluck(:mc_name, :first_server_id)).to contain_exactly(
+      %w[Steve survival],
+      %w[Alex survival],
+    )
+  end
+
   it "accepts a heartbeat from an empty server" do
     post_heartbeat(body: heartbeat_body.merge(players_online: 0, player_names: []))
 

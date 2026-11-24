@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # name: discourse-gtmc
-# about: GTMC 论坛与 Minecraft 服务器的对接：服务器状态、账号绑定、进服验证
+# about: GTMC 论坛与 Minecraft 服务器的对接：服务器状态、新人进服进度
 # version: 0.1.0
 # authors: GTMC
 # url: https://github.com/GTIIT-MC-Club/gtmc-forum-plugin

@@ -3,38 +3,46 @@ import Service, { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import { i18n } from "discourse-i18n";
 
-// 一步：key 对应 client.*.yml 的 gtmc.newcomer.steps.<key>；
+// 一步：key 对应 client.*.yml 的 gtmc.newcomer.steps.<key> 和 actions.<key>；
+// field 是 GET /gtmc/newcomer.json 里表示这一步完成与否的字段。
 // 完成与否、去哪里做都在 steps 里算好，面板和手机卡片只管显示。
-// action 取值：
-//   "sign_up"   打开注册窗口（只有游客的第一步有）
-//   "link"      跳到 url
-//   null        没有去处，只显示这一步
-const STEP_KEYS = [
-  "register",
-  "read_guide",
-  "bind_mc_name",
-  "enter_login_code",
+const STEPS = [
+  { key: "register", field: "registered" },
+  { key: "create_character", field: "has_character" },
+  { key: "join_server", field: "joined_server" },
 ];
 
+// 游客不用请求接口：三步都没完成
+const GUEST_PROGRESS = Object.freeze({
+  registered: false,
+  has_character: false,
+  joined_server: false,
+});
+
 /**
- * 「新人进服」四步的状态：注册、读新人指南、绑定游戏名、输入登录码。
+ * 「新人进服」三步的状态：注册、在皮肤站建角色、进一次服。
+ * 三步都由后端判断（见 DiscourseGtmc::NewcomerProgress），全部完成后面板不再出现（isComplete）。
  *
- * 后两步的功能还没做，在那之前恒为未完成，也没有去处；
- * 做完后把它们的 isDone 接到各自的数据上，并给出 url。
- * 四步全部完成后面板不再出现（isComplete）。
+ * 每一步的去处（action）：
+ *   "sign_up"   打开注册窗口
+ *   "link"      跳到 url
+ * 已完成的步骤没有去处。
  */
 export default class GtmcNewcomerService extends Service {
   @service currentUser;
+  @service siteSettings;
 
-  // 接口返回的 {topic_url, read}；还没拿到时为 null
-  @tracked guide = null;
+  // 接口返回的 {registered, has_character, joined_server}；还没拿到时为 null
+  @tracked progress = null;
+
+  #pendingLoad = null;
 
   get hasLoaded() {
-    return this.guide !== null;
+    return this.progress !== null;
   }
 
   get steps() {
-    return STEP_KEYS.map((key) => this.buildStep(key));
+    return STEPS.map((definition) => this.buildStep(definition));
   }
 
   get doneCount() {
@@ -42,7 +50,7 @@ export default class GtmcNewcomerService extends Service {
   }
 
   get isComplete() {
-    return this.doneCount === STEP_KEYS.length;
+    return this.doneCount === STEPS.length;
   }
 
   // 第一个没完成的步骤。全部完成时为 undefined，调用方应先看 isComplete。
@@ -50,49 +58,68 @@ export default class GtmcNewcomerService extends Service {
     return this.steps.find((step) => !step.isDone);
   }
 
-  buildStep(key) {
+  buildStep({ key, field }) {
+    const isDone = this.progress?.[field] === true;
     const step = {
       key,
       label: i18n(`gtmc.newcomer.steps.${key}`),
-      isDone: false,
+      isDone,
       action: null,
       actionLabel: null,
       url: null,
     };
+    if (isDone) {
+      return step;
+    }
 
     if (key === "register") {
-      step.isDone = !!this.currentUser;
-      if (!step.isDone) {
-        step.action = "sign_up";
-        step.actionLabel = i18n("gtmc.newcomer.actions.sign_up");
+      step.action = "sign_up";
+    } else {
+      const url =
+        key === "create_character"
+          ? this.siteSettings.gtmc_newcomer_character_url
+          : this.siteSettings.gtmc_newcomer_join_guide_url;
+      if (!url) {
+        return step;
       }
-    } else if (key === "read_guide") {
-      step.isDone = this.guide?.read ?? false;
-      if (!step.isDone && this.guide?.topic_url) {
-        step.action = "link";
-        step.actionLabel = i18n("gtmc.newcomer.actions.read_guide");
-        step.url = this.guide.topic_url;
-      }
+      step.action = "link";
+      step.url = url;
     }
+    step.actionLabel = i18n(`gtmc.newcomer.actions.${key}`);
     return step;
   }
 
-  // 面板每次出现都重新取一次：用户刚读完指南回到首页时，第二步要立刻变成已完成。
-  async load() {
+  // 面板每次出现都重新取一次：新人在皮肤站建完角色、进完服回到首页时，对应的步骤要变成已完成。
+  // 右栏和手机卡片同时出现时共用同一次请求。
+  load() {
+    this.#pendingLoad ??= this.#fetch().finally(() => {
+      this.#pendingLoad = null;
+    });
+    return this.#pendingLoad;
+  }
+
+  async #fetch() {
+    if (!this.currentUser) {
+      this.progress = GUEST_PROGRESS;
+      return;
+    }
+
     let response = null;
     try {
-      response = await ajax("/gtmc/newcomer_guide.json");
+      response = await ajax("/gtmc/newcomer.json");
     } catch {
-      // 取不到时按「没读过、没有指南地址」显示，面板仍然可用，只是第二步没有链接。
+      // 取不到时只算「已注册」（登录了就是注册过），面板仍然可用。
       // 不弹错误：这只是一份进度提示，不值得打断浏览。
     }
 
     if (this.isDestroying) {
       return;
     }
-    const isUsable =
-      typeof response?.read === "boolean" &&
-      (response.topic_url === null || typeof response.topic_url === "string");
-    this.guide = isUsable ? response : { topic_url: null, read: false };
+    const isUsable = STEPS.every(
+      ({ field }) => typeof response?.[field] === "boolean"
+    );
+    this.progress = isUsable
+      ? response
+      : { ...GUEST_PROGRESS, registered: true };
   }
 }

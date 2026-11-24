@@ -63,6 +63,17 @@ RSpec.describe Jobs::GtmcPollServers do
     expect(status_by_server_id["survival"][:online]).to eq(false)
   end
 
+  it "remembers the queried players for the newcomer panel" do
+    DiscourseGtmc::MinecraftQuery.stubs(:fetch).returns(query_result)
+
+    described_class.new.execute({})
+
+    expect(DiscourseGtmc::SeenPlayer.pluck(:mc_name, :first_server_id)).to contain_exactly(
+      %w[Steve creative],
+      %w[Alex creative],
+    )
+  end
+
   it "leaves the server offline when the query fails" do
     DiscourseGtmc::MinecraftQuery.stubs(:fetch).raises(
       DiscourseGtmc::MinecraftQuery::Error,

@@ -99,6 +99,28 @@ discourse_gtmc:
     default: "https://skin.gtmc.top/avatar/player/{name}?size={size}"
     validations:
       max_length: 500
+  gtmc_skin_api_url:
+    # 「新人进服」第二、三步问皮肤站某人建了哪些角色的接口，皮肤站一侧见 gtmc-auth-core 的 gtmc-casdoor 插件。
+    # 走公网地址：皮肤站的端口只绑在账号虚拟机的本机上，局域网连不到。
+    default: "https://skin.gtmc.top/api/gtmc/players"
+    validations:
+      max_length: 500
+  gtmc_skin_api_key:
+    # 和皮肤站 .env 的 SKIN_FORUM_API_KEY 填同一个值。留空时不问皮肤站，第二、三步一直显示未完成。
+    default: ""
+    secret: true
+  gtmc_newcomer_character_url:
+    # 「新人进服」第二步「去建角色」的链接。前端要读，所以 client: true。
+    default: "https://skin.gtmc.top/user/player"
+    client: true
+    validations:
+      max_length: 500
+  gtmc_newcomer_join_guide_url:
+    # 「新人进服」第三步「看教程」的链接：配置启动器、拿服务器地址都在这一页。前端要读，所以 client: true。
+    default: "https://wiki.gtmc.top/server/joining"
+    client: true
+    validations:
+      max_length: 500
   gtmc_announcement_category:
     # 右栏「公告」面板读哪个版块。由 infra/discourse/sidebar.rb 按名字「公告」找到版块后写入；
     # 为空时面板不出现。前端要读，所以 client: true。

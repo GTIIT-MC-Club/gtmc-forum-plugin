@@ -5,7 +5,7 @@ import { i18n } from "discourse-i18n";
 import GtmcNewcomerStepAction from "./gtmc-newcomer-step-action.gjs";
 
 /**
- * 右栏「新人进服」面板，渲染进 gtmc-right-rail 出口。四步的定义见 services/gtmc-newcomer.js。
+ * 右栏「新人进服」面板，渲染进 gtmc-right-rail 出口。三步的定义见 services/gtmc-newcomer.js。
  */
 export default class GtmcRailNewcomer extends Component {
   @service gtmcNewcomer;

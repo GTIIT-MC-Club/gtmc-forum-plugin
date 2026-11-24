@@ -30,12 +30,12 @@ en:
         next_step: "Next: %{step}"
         steps:
           register: "Sign up with your campus email"
-          read_guide: "Read the newcomer guide"
-          bind_mc_name: "Link your Minecraft name"
-          enter_login_code: "Enter the login code in game"
+          create_character: "Create a character on the skin site"
+          join_server: "Join a server once"
         actions:
-          sign_up: "Sign up"
-          read_guide: "Read it"
+          register: "Sign up"
+          create_character: "Create one"
+          join_server: "How to join"
       events:
         title: "Upcoming events"
         empty: "No upcoming events"

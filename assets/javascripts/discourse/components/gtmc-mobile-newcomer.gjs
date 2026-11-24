@@ -5,7 +5,7 @@ import { i18n } from "discourse-i18n";
 import GtmcNewcomerStepAction from "./gtmc-newcomer-step-action.gjs";
 
 /**
- * 手机首页的新人进度卡，对应桌面右栏的「新人进服」面板。四步的定义见 services/gtmc-newcomer.js。
+ * 手机首页的新人进度卡，对应桌面右栏的「新人进服」面板。三步的定义见 services/gtmc-newcomer.js。
  * 桌面宽度下由样式隐藏，因为那时右栏在显示同样的内容。
  */
 export default class GtmcMobileNewcomer extends Component {

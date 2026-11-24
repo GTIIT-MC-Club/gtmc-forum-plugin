@@ -11,10 +11,11 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛。
 |---|---|---|
 | `GET /gtmc/status.json` | 任何人 | 各服的状态，右栏和手机状态条用 |
 | `GET /gtmc/servers/:server_id/icon.png` | 任何人 | 服务器自己的图标（`server-icon.png`），`status.json` 的 `favicon_url` 指向它 |
-| `GET /gtmc/newcomer_guide.json` | 任何人 | 新人指南帖的地址，和当前用户读过没有 |
+| `GET /gtmc/newcomer.json` | 任何人 | 当前用户「新人进服」三步的完成情况，右栏和手机进度卡用 |
 | `PUT /gtmc/servers/:server_id/heartbeat.json` | MC 服务器（API Key） | 上报心跳 |
 
 每个服只保留最近一次心跳，存在 Redis。Redis 清空的后果只是下一次心跳之前显示离线。
+在线名单里出现过的游戏名另外永久记在 PostgreSQL 的 `gtmc_seen_players` 表里（见下文「新人进服」）。
 
 ### 给 MC 服主：上报心跳
 
@@ -111,7 +112,8 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 在线的服排在前面，按人数从多到少，其余按登记顺序。离线的服 `online` 是 `false`，
 `version`、`players_online`、`players_max`、`players`、`tps`、`updated_at` 都是 `null`。
 
-`GET /gtmc/newcomer_guide.json` 返回 `{"topic_url": "/t/slug/12", "read": false}`，没有新人指南帖时 `topic_url` 是 `null`。
+`GET /gtmc/newcomer.json` 返回 `{"registered": true, "has_character": true, "joined_server": false}`，游客三项都是 `false`。
+怎么判断见下文「新人进服」。
 
 ## 登记 MC 服（`gtmc_servers`）
 
@@ -160,6 +162,26 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
   存在 Redis 里不过期，服离线时也照样显示；每小时最多重取一次。服没设图标时显示 `icon` 里选的图标。
 - 代码在 `app/jobs/scheduled/gtmc_poll_servers.rb`、`app/services/discourse_gtmc/` 下的 `server_poller.rb`、`minecraft_query.rb`、`minecraft_ping.rb`、`server_favicon.rb`。
 
+## 新人进服
+
+右栏「新人进服」面板和手机进度卡显示三步，全部由后端判断（`app/services/discourse_gtmc/newcomer_progress.rb`）：
+
+| 步骤 | 完成的条件 | 没完成时的按钮 |
+|---|---|---|
+| 用校园邮箱注册 | 登录了论坛（论坛只能用 GTMC 账号登录） | 去注册 |
+| 在皮肤站建角色 | 皮肤站上邮箱相同的账号下至少有一个角色 | 去建角色（`gtmc_newcomer_character_url`） |
+| 进一次服务器 | 这些角色名里有一个出现过在线名单里 | 看教程（`gtmc_newcomer_join_guide_url`，Wiki 的进服步骤） |
+
+- **问皮肤站**：论坛拿当前用户的邮箱，调皮肤站的 `POST /api/gtmc/players`（`gtmc_skin_api_url`，密钥 `gtmc_skin_api_key`），
+  拿到他建的角色名。皮肤站一侧是 gtmc-auth-core 里 `gtmc-casdoor` 插件的接口。结果缓存 15 秒；问不到时第二、三步按未完成算，不缓存。
+- **在线名单**：心跳和 Query 轮询收到的名单都记进 `gtmc_seen_players` 表（游戏名、第一次出现的时间和服），已有的名字跳过。
+  名字区分大小写：服务器按名字算 UUID，大小写不同就是两个号。只有这张表上线之后出现过的人才有记录，老玩家再上一次线就补上了。
+- 三步都完成后，在用户的自定义字段 `gtmc_newcomer_completed_at` 里记下时间，以后不再问皮肤站，面板也不再出现。
+- 游客不请求这个接口，前端直接显示三步都没完成。
+
+**启用**：皮肤站 `.env` 里填好 `SKIN_FORUM_API_KEY` 并重启皮肤站，再把同一个值填进论坛的 `gtmc_skin_api_key`。
+没填之前第二、三步一直显示未完成。
+
 ## 右栏面板和手机形态
 
 界面按 gtmc-discourse-forum 里 `design/mockups/c-*.html` 的设计稿实现。桌面的四个面板都渲染进主题提供的
@@ -171,7 +193,7 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
   超过 `gtmc_rail_visible_servers` 的服折叠在「+N」按钮后面。
 - **公告**（`gtmc-rail-announcements.gjs`）：`gtmc_announcement_category` 版块里最新的几个话题。
   设置由 gtmc-discourse-forum 的 `infra/discourse/sidebar.rb` 按版块名「公告」写入，不用手动填。
-- **新人进服**（`gtmc-rail-newcomer.gjs`、`gtmc-newcomer-step-action.gjs`）：四步的进度，读指南用 `GET /gtmc/newcomer_guide.json`。
+- **新人进服**（`gtmc-rail-newcomer.gjs`、`gtmc-newcomer-step-action.gjs`）：三步的进度，数据来自 `GET /gtmc/newcomer.json`，见上文「新人进服」。
 - **近期活动**（`gtmc-rail-events.gjs`）：读 `discourse-events` 插件的 `GET /discourse-post-event/events`，最多 3 场。
 - **手机**（`gtmc-mobile-status-strip.gjs`、`gtmc-mobile-newcomer.gjs`）：挂在 `discovery-above`，横向服务器状态条加新人进度卡。
 
@@ -208,6 +230,10 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 | `gtmc_servers` | 空 | 接入论坛的 MC 服，见上文「登记 MC 服」；填了 `query_address` 的由论坛定时查询 |
 | `gtmc_rail_visible_servers` | 3 | 右栏「服务器」面板默认显示几个服，其余折叠在「+N」后面（1–20） |
 | `gtmc_player_avatar_url` | `https://skin.gtmc.top/avatar/player/{name}?size={size}` | 右栏在线玩家的头像：皮肤站上角色的脸。没在皮肤站建角色的（404）显示字母头像；留空则一律字母头像 |
+| `gtmc_skin_api_url` | `https://skin.gtmc.top/api/gtmc/players` | 皮肤站按邮箱查角色的接口，「新人进服」第二、三步用 |
+| `gtmc_skin_api_key` | 空 | 上面那个接口的密钥，和皮肤站 `.env` 的 `SKIN_FORUM_API_KEY` 相同；为空不查询 |
+| `gtmc_newcomer_character_url` | `https://skin.gtmc.top/user/player` | 「去建角色」按钮的链接 |
+| `gtmc_newcomer_join_guide_url` | `https://wiki.gtmc.top/server/joining` | 「看教程」按钮的链接 |
 | `gtmc_announcement_category` | 空 | 右栏「公告」面板读哪个版块；为空不显示。由 gtmc-discourse-forum 的 `infra/discourse/sidebar.rb` 写入 |
 
 ## 测试

@@ -2,7 +2,7 @@
 
 module DiscourseGtmc
   # 各 MC 服的在线状态。每个服只保留最近一次心跳，各存一个 Redis 键；Redis 丢数据的后果只是
-  # 在下一次心跳（默认 30 秒内）之前显示为离线。
+  # 在下一次心跳（默认 30 秒内）之前显示为离线。在线名单里的名字另外永久记进 SeenPlayer。
   #
   # 在线与否在读取时按心跳的接收时间计算，而不是给 Redis 键设过期时间：
   # 这样改了 gtmc_heartbeat_timeout_seconds 立即生效，测试也能用时间冻结控制。
@@ -42,6 +42,7 @@ module DiscourseGtmc
         received_at: Time.zone.now.iso8601(3),
       }
       Discourse.redis.set(redis_key(server_id), heartbeat.to_json)
+      SeenPlayer.record(server_id: server_id, mc_names: player_names)
     end
 
     # 返回 GET /gtmc/status.json 的响应体。

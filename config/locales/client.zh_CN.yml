@@ -29,12 +29,12 @@ zh_CN:
         next_step: "下一步：%{step}"
         steps:
           register: "用校园邮箱注册"
-          read_guide: "读一遍新人指南"
-          bind_mc_name: "绑定游戏名"
-          enter_login_code: "进服输入登录码"
+          create_character: "在皮肤站建角色"
+          join_server: "进一次服务器"
         actions:
-          sign_up: "去注册"
-          read_guide: "去阅读"
+          register: "去注册"
+          create_character: "去建角色"
+          join_server: "看教程"
       events:
         title: "近期活动"
         empty: "近期没有活动"
