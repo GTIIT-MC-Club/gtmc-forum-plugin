@@ -16,7 +16,7 @@ module DiscourseGtmc
       return nil if !uri.is_a?(URI::HTTP) || uri.host.blank?
 
       request = Net::HTTP::Post.new(uri)
-      request["Authorization"] = "Bearer #{key}"
+      request["X-Gtmc-Key"] = key
       request["Accept"] = "application/json"
       request.set_form_data("email" => email)
 

@@ -16,7 +16,7 @@ RSpec.describe DiscourseGtmc::NewcomersController do
     stub_request(:post, skin_api_url).with(
       body: { "email" => "newbie@gtiit.edu.cn" },
       headers: {
-        "Authorization" => "Bearer s3cret",
+        "X-Gtmc-Key" => "s3cret",
       },
     ).to_return(status: status, body: { players: players }.to_json)
   end
