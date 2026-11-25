@@ -11,9 +11,9 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛。
 |---|---|---|
 | `GET /gtmc/status.json` | 任何人 | 各服的状态，右栏和手机状态条用 |
 | `GET /gtmc/servers/:server_id/icon.png` | 任何人 | 服务器自己的图标（`server-icon.png`），`status.json` 的 `favicon_url` 指向它 |
-| `GET /gtmc/newcomer.json` | 任何人 | 当前用户「新人进服」三步的完成情况，右栏和手机进度卡用 |
-| `GET /gtmc/characters.json` | 任何人 | 当前用户在皮肤站的角色和皮肤（游客是空列表），右栏「我的角色」用 |
-| `GET /gtmc/skins/:hash.png` | 登录用户 | 转发皮肤站的贴图：它没有 CORS 头，WebGL 不能直接读 |
+| `GET /gtmc/newcomer.json` | 任何人，只返回自己的 | 当前用户「新人进服」三步的完成情况，右栏和手机进度卡用 |
+| `GET /gtmc/characters.json` | 任何人，只返回自己的 | 当前用户在皮肤站的角色和皮肤（游客是空列表），右栏「我的角色」用 |
+| `GET /gtmc/skins/:hash.png` | 登录用户 | 转发皮肤站的贴图：它没有 CORS 头，WebGL 不能直接读。贴图本来就公开，CDN 缓存过的游客也可能取到，登录检查只为不让游客借论坛刷皮肤站 |
 | `PUT /gtmc/servers/:server_id/heartbeat.json` | MC 服务器（API Key） | 上报心跳 |
 
 每个服只保留最近一次心跳，存在 Redis。Redis 清空的后果只是下一次心跳之前显示离线。
@@ -176,6 +176,7 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 
 - **问皮肤站**：论坛拿当前用户的邮箱，调皮肤站的 `POST /api/gtmc/players`（`gtmc_skin_api_url`，密钥 `gtmc_skin_api_key`），
   拿到他建的角色名。皮肤站一侧是 gtmc-auth-core 里 `gtmc-casdoor` 插件的接口。结果缓存 15 秒；问不到时第二、三步按未完成算，不缓存。
+  连不上皮肤站或超时（2 秒）后，全站 30 秒内不再问它，「我的角色」和贴图转发也一样，免得占住网页 worker。
 - **在线名单**：心跳和 Query 轮询收到的名单都记进 `gtmc_seen_players` 表（游戏名、第一次出现的时间和服），已有的名字跳过。
   名字区分大小写：服务器按名字算 UUID，大小写不同就是两个号。只有这张表上线之后出现过的人才有记录，老玩家再上一次线就补上了。
 - 三步都完成后，在用户的自定义字段 `gtmc_newcomer_completed_at` 里记下时间，以后不再问皮肤站，面板也不再出现。

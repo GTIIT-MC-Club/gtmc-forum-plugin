@@ -58,14 +58,55 @@ RSpec.describe "GTMC characters" do
     expect(a_request(:post, api_url)).to have_been_made.once
   end
 
-  it "stops at the first failure and does not cache it" do
+  it "stops at the first failure and backs off from the skin site for everyone" do
     stub_names("Steve", "Alex")
     failing = stub_request(:get, "https://skin.gtmc.test/csl/Steve.json").to_timeout
+    texture = stub_request(:get, texture_url)
     sign_in(user)
-
     expect(characters).to eq([])
-    characters
-    expect(failing).to have_been_requested.twice
+
+    sign_in(Fabricate(:user))
+    expect(characters).to eq([])
+    get "/gtmc/newcomer.json"
+    expect(response.parsed_body["has_character"]).to eq(false)
+    get "/gtmc/skins/#{skin_hash}.png"
+    expect(response.status).to eq(404)
+
+    expect(failing).to have_been_requested.once
+    expect(texture).not_to have_been_requested
+    expect(a_request(:post, api_url)).to have_been_made.once
+  end
+
+  it "asks the skin site again once the back-off is over" do
+    stub_request(:post, api_url).to_timeout
+    sign_in(user)
+    expect(characters).to eq([])
+
+    Discourse.cache.clear # 过期由 Redis 按真实时间处理，这里直接清掉
+    stub_names("Steve")
+    stub_skin("Steve", { default: skin_hash })
+    expect(characters.size).to eq(1)
+  end
+
+  it "stops asking once the time budget is used up" do
+    stub_names("Steve")
+    sign_in(user)
+    stub_const(DiscourseGtmc::CharacterList, "TIME_BUDGET_SECONDS", -1) do
+      expect(characters).to eq([])
+    end
+    expect(a_request(:get, /csl/)).not_to have_been_made
+  end
+
+  it "limits how often one user can make the forum ask" do
+    RateLimiter.enable
+    stub_names
+    sign_in(user)
+    stub_const(DiscourseGtmc::CharacterList, "MAX_FETCHES_PER_MINUTE", 1) do
+      characters
+      Discourse.cache.clear
+      expect(characters).to eq([])
+    end
+    expect(a_request(:post, api_url)).to have_been_made.once
   end
 
   it "lists nothing when the skin site URL is empty" do

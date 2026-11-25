@@ -17,7 +17,7 @@ module DiscourseGtmc
                        :redirect_to_profile_if_required
 
     def show
-      # 面板只给登录用户看；不让游客借论坛去刷皮肤站
+      # 只为不让游客借论坛去刷皮肤站，不是保密：贴图在皮肤站本来就公开，CDN 也可能把缓存的图给游客
       raise Discourse::NotFound if current_user.nil?
       png = cached_texture(params[:texture_hash])
       raise Discourse::NotFound if png.nil?
