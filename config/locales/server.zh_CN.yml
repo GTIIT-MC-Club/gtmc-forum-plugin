@@ -10,3 +10,5 @@ zh_CN:
     gtmc_skin_api_key: "上面那个接口的密钥，和皮肤站 .env 里的 SKIN_FORUM_API_KEY 填同一个值。留空则不查询，第二、三步一直显示未完成。"
     gtmc_newcomer_character_url: "「新人进服」第二步「去建角色」的链接。"
     gtmc_newcomer_join_guide_url: "「新人进服」第三步「看教程」的链接：配置启动器、拿服务器地址的说明。"
+    gtmc_skin_site_url: "皮肤站的网址，右栏「我的角色」从这里取皮肤。留空则不显示这个面板。"
+    gtmc_wiki_links: "右栏「Wiki」面板里的链接，按顺序列出。清空则不显示这个面板。"

@@ -10,3 +10,5 @@ en:
     gtmc_skin_api_key: "Key for the skin site endpoint above; the same value as SKIN_FORUM_API_KEY in the skin site's .env. Leave empty to skip the lookup, which leaves steps 2 and 3 undone."
     gtmc_newcomer_character_url: "Where the newcomer panel's 'create a character' step links to."
     gtmc_newcomer_join_guide_url: "Where the newcomer panel's 'join a server' step links to: launcher setup and server addresses."
+    gtmc_skin_site_url: "The skin site, where the 'My characters' panel gets skins from. Leave empty to hide the panel."
+    gtmc_wiki_links: "Links in the right rail's Wiki panel, in order. Clear to hide the panel."

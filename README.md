@@ -12,6 +12,8 @@ GTMC 论坛的 Discourse 插件：把 MC 服务器的状态接进论坛。
 | `GET /gtmc/status.json` | 任何人 | 各服的状态，右栏和手机状态条用 |
 | `GET /gtmc/servers/:server_id/icon.png` | 任何人 | 服务器自己的图标（`server-icon.png`），`status.json` 的 `favicon_url` 指向它 |
 | `GET /gtmc/newcomer.json` | 任何人 | 当前用户「新人进服」三步的完成情况，右栏和手机进度卡用 |
+| `GET /gtmc/characters.json` | 任何人 | 当前用户在皮肤站的角色和皮肤（游客是空列表），右栏「我的角色」用 |
+| `GET /gtmc/skins/:hash.png` | 登录用户 | 转发皮肤站的贴图：它没有 CORS 头，WebGL 不能直接读 |
 | `PUT /gtmc/servers/:server_id/heartbeat.json` | MC 服务器（API Key） | 上报心跳 |
 
 每个服只保留最近一次心跳，存在 Redis。Redis 清空的后果只是下一次心跳之前显示离线。
@@ -184,9 +186,9 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 
 ## 右栏面板和手机形态
 
-界面按 gtmc-discourse-forum 里 `design/mockups/c-*.html` 的设计稿实现。桌面的四个面板都渲染进主题提供的
+界面按 gtmc-discourse-forum 里 `design/mockups/c-*.html` 的设计稿实现。桌面的六个面板都渲染进主题提供的
 `gtmc-right-rail` 出口，只在首页和版块页（路由名以 `discovery.` 开头）出现，话题页和标签页（路由 `tag.*`）不出现；`gtmc_enabled` 关闭时不渲染也不请求。
-面板按注册顺序从上到下：服务器、公告、新人进服、近期活动，入口在 `assets/javascripts/discourse/api-initializers/gtmc-right-rail.gjs`。
+面板按注册顺序从上到下：服务器、公告、新人进服、我的角色、Wiki、近期活动，入口在 `assets/javascripts/discourse/api-initializers/gtmc-right-rail.gjs`。
 每个面板显示什么、什么时候不出现、失败时显示什么，见各自的组件注释。
 
 - **服务器**（`gtmc-rail-servers.gjs`、`gtmc-server-row.gjs`）：刷新倒计时圆环、在线总人数、每个服一行；
@@ -194,6 +196,10 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 - **公告**（`gtmc-rail-announcements.gjs`）：`gtmc_announcement_category` 版块里最新的几个话题。
   设置由 gtmc-discourse-forum 的 `infra/discourse/sidebar.rb` 按版块名「公告」写入，不用手动填。
 - **新人进服**（`gtmc-rail-newcomer.gjs`、`gtmc-newcomer-step-action.gjs`）：三步的进度，数据来自 `GET /gtmc/newcomer.json`，见上文「新人进服」。
+- **我的角色**（`gtmc-rail-characters.gjs`、`modifiers/gtmc-skin-viewer.js`）：自己在皮肤站的角色的 3D 预览，可拖动旋转，多个角色时点头像切换（最多 5 个）。
+  需要配好 `gtmc_skin_api_key`；游客、没有角色或角色没设皮肤时不出现。3D 由 `public/javascripts/` 里的
+  [skinview3d](https://github.com/bs-community/skinview3d) 3.4.2（MIT）画，有角色可显示时才加载。
+- **Wiki**（`gtmc-rail-wiki.gjs`）：`gtmc_wiki_links` 里的链接。
 - **近期活动**（`gtmc-rail-events.gjs`）：读 `discourse-events` 插件的 `GET /discourse-post-event/events`，最多 3 场。
 - **手机**（`gtmc-mobile-status-strip.gjs`、`gtmc-mobile-newcomer.gjs`）：挂在 `discovery-above`，横向服务器状态条加新人进度卡。
 
@@ -232,7 +238,9 @@ curl -X PUT https://forum.gtmc.top/gtmc/servers/survival/heartbeat.json \
 | `gtmc_player_avatar_url` | `https://skin.gtmc.top/avatar/player/{name}?size={size}` | 右栏在线玩家的头像：皮肤站上角色的脸。没在皮肤站建角色的（404）显示字母头像；留空则一律字母头像 |
 | `gtmc_skin_api_url` | `https://skin.gtmc.top/api/gtmc/players` | 皮肤站按邮箱查角色的接口，「新人进服」第二、三步用 |
 | `gtmc_skin_api_key` | 空 | 上面那个接口的密钥，和皮肤站 `.env` 的 `SKIN_FORUM_API_KEY` 相同；为空不查询 |
-| `gtmc_newcomer_character_url` | `https://skin.gtmc.top/user/player` | 「去建角色」按钮的链接 |
+| `gtmc_skin_site_url` | `https://skin.gtmc.top` | 皮肤站网址，「我的角色」从这里取皮肤；为空不显示面板 |
+| `gtmc_wiki_links` | Wiki 首页等四个 | 右栏「Wiki」面板的链接；为空不显示面板 |
+| `gtmc_newcomer_character_url` | `https://skin.gtmc.top/user/player` | 「去建角色」和「我的角色」里「管理」的链接 |
 | `gtmc_newcomer_join_guide_url` | `https://wiki.gtmc.top/server/joining` | 「看教程」按钮的链接 |
 | `gtmc_announcement_category` | 空 | 右栏「公告」面板读哪个版块；为空不显示。由 gtmc-discourse-forum 的 `infra/discourse/sidebar.rb` 写入 |
 

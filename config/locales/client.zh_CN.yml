@@ -35,6 +35,14 @@ zh_CN:
           register: "去注册"
           create_character: "去建角色"
           join_server: "看教程"
+      characters:
+        title: "我的角色"
+        manage: "管理"
+        preview: "%{name} 的 3D 预览，拖动可旋转"
+        unavailable: "3D 预览无法加载"
+        switch_to: "切换到 %{name}"
+      wiki:
+        title: "Wiki"
       events:
         title: "近期活动"
         empty: "近期没有活动"

@@ -4,6 +4,15 @@
 DiscourseGtmc::Engine.routes.draw do
   get "/status" => "status#show"
   get "/newcomer" => "newcomers#show"
+  get "/characters" => "characters#show"
+  get "/skins/:texture_hash" => "skins#show",
+      :constraints => {
+        texture_hash: /[0-9a-f]{64}/,
+        format: "png",
+      },
+      :defaults => {
+        format: "png",
+      }
   put "/servers/:server_id/heartbeat" => "heartbeats#update",
       :constraints => {
         server_id: /[a-z0-9-]{1,32}/,

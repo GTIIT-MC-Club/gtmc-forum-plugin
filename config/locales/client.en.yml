@@ -36,6 +36,14 @@ en:
           register: "Sign up"
           create_character: "Create one"
           join_server: "How to join"
+      characters:
+        title: "My characters"
+        manage: "Manage"
+        preview: "3D preview of %{name}, drag to rotate"
+        unavailable: "The 3D preview could not be loaded"
+        switch_to: "Switch to %{name}"
+      wiki:
+        title: "Wiki"
       events:
         title: "Upcoming events"
         empty: "No upcoming events"

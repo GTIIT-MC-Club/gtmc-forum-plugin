@@ -668,3 +668,100 @@ $gtmc-accent-soft: color-mix(in srgb, var(--tertiary) 14%, transparent);
     }
   }
 }
+
+.gtmc-rail-characters {
+  &__manage {
+    font-weight: normal;
+  }
+
+  &__stage {
+    height: 260px;
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      cursor: grab;
+
+      &:active {
+        cursor: grabbing;
+      }
+    }
+  }
+
+  &__name {
+    margin: var(--space-2) 0 0;
+    text-align: center;
+    font-size: var(--font-down-1);
+    font-weight: 600;
+  }
+
+  &__faces {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  // 脸和帽子层各 8×8，贴图宽 64：按 4 倍放大成 32px，用背景位置各切一块叠起来
+  &__face {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--d-border-radius);
+    background-repeat: no-repeat;
+    background-position:
+      -160px -32px,
+      -32px -32px;
+    background-size: 256px auto;
+    image-rendering: pixelated;
+    opacity: 0.6;
+    cursor: pointer;
+
+    @include gtmc-state-transition(opacity);
+
+    &:hover,
+    &.is-selected {
+      opacity: 1;
+    }
+
+    &.is-selected,
+    &:focus-visible {
+      outline: 2px solid var(--tertiary);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.gtmc-rail-wiki {
+  // 两列：四个短链接只占两行，不把下面的面板推太远
+  &__list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__link {
+    display: block;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--content-border-color);
+    border-radius: var(--d-border-radius);
+    overflow: hidden;
+    font-size: var(--font-down-1);
+    color: var(--primary);
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    @include gtmc-state-transition(background-color, color);
+
+    &:hover,
+    &:focus-visible {
+      background: $gtmc-accent-soft;
+      color: var(--tertiary);
+    }
+  }
+}

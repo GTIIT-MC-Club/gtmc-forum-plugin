@@ -109,8 +109,36 @@ discourse_gtmc:
     # 和皮肤站 .env 的 SKIN_FORUM_API_KEY 填同一个值。留空时不问皮肤站，第二、三步一直显示未完成。
     default: ""
     secret: true
+  gtmc_skin_site_url:
+    # 右栏「我的角色」从这里取角色的皮肤。留空则面板不出现。
+    default: "https://skin.gtmc.top"
+    validations:
+      max_length: 500
+  gtmc_wiki_links:
+    # 右栏「Wiki」面板的链接，按顺序列出；清空则面板不出现。前端要读，所以 client: true。
+    type: objects
+    client: true
+    # 默认值必须是 JSON 字符串：写成 YAML 数组时核心取图标（SvgSprite.settings_icons）会解析失败，整站报错。
+    default: '[{"label":"Wiki 首页","url":"https://wiki.gtmc.top"},{"label":"服务器一览","url":"https://wiki.gtmc.top/server/"},{"label":"加入服务器","url":"https://wiki.gtmc.top/server/joining"},{"label":"社群规范","url":"https://wiki.gtmc.top/community/"}]'
+    schema:
+      name: 链接
+      identifier: label
+      properties:
+        label:
+          type: string
+          required: true
+          label: 文字
+          validations:
+            max_length: 30
+        url:
+          type: string
+          required: true
+          label: 网址
+          description: 以 http:// 或 https:// 开头，其他的不显示。
+          validations:
+            max_length: 500
   gtmc_newcomer_character_url:
-    # 「新人进服」第二步「去建角色」的链接。前端要读，所以 client: true。
+    # 「新人进服」第二步「去建角色」和「我的角色」面板「管理」的链接。前端要读，所以 client: true。
     default: "https://skin.gtmc.top/user/player"
     client: true
     validations:
